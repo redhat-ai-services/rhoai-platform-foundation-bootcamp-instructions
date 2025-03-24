@@ -629,7 +629,7 @@ print(submission_id)
 
 [WARNING]
 ====
-This cell will try to upload everything in the current working directory to the Ray cluster. Make sure that older files are not uploaded by adding the *__excludes__* parameter to the `runtime_env`.
+The cell above will try to upload everything in the current working directory to the Ray cluster. Make sure that older files are not uploaded by adding the *__excludes__* parameter to the `runtime_env`.
 
 [.console-input]
 [source,python]
