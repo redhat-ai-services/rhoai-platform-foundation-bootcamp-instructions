@@ -39,4 +39,4 @@
     ** 22. xref:80_trustyai_overview.adoc[TrustyAI Overview]
     ** 23. xref:81_llm_evaluation.adoc[Evaluating Large Language Models]
 
-* 22. xref:99_useful_tips.adoc[Useful Tips]
+* 24. xref:99_useful_tips.adoc[Useful Tips]
