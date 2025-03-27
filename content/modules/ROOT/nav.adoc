@@ -34,6 +34,7 @@
 * Large Language Model [LLM]
     ** 20. xref:60_llm_explore.adoc[Explore LLMs]
     ** 21. xref:70_rag_llm.adoc[RAG with LLM]
+    ** 22. xref:composer_ai.adoc[Composer AI]
 
 * Monitoring Data Science Models
     ** 22. xref:80_trustyai_overview.adoc[TrustyAI Overview]
