@@ -5,7 +5,7 @@ In this section we will cover how Large Language Models can be evaluated using L
 [WARNING]
 ====
 This lab only works with rhoai-eus-2.16-aws-gpu overlay on Demo cluster.
-Qwen_Instruct model used in the lab requires gpu node and trustyai configuration ConfigMap instructions are not applicable for RHOAI 2.18 due to the way how operator now controls that ConfigMap
+Qwen_Instruct model used in the lab requires gpu node and trustyai ConfigMap patching instructions are not applicable for RHOAI 2.18 due to the way how operator now controls that ConfigMap
 ====
 
 Validate via ArgoCD that all components are deployed and synced. TrustyAI demo components are deployed via `ai-example-lmeval-lab` application. It includes LLM model from https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct[]. Source code can be found under 'tenants/ai-example/lmeval-lab'. Minio deployment for object storage is done via 'ai-example-lmeval-lab-minio' ArgoCd application - source code is under 'tenants/ai-example/lmeval-lab-minio'.
