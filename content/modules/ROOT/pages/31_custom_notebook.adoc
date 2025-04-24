@@ -62,6 +62,7 @@ podman run -it --platform linux/amd64 --name custom-notebook-builder quay.io/ash
 
 This will run the container and you will now be inside the container.
 
+### Using the notebooks repository to create a custom notebook image
 
 . Log into https://quay.io[quay.io] from your web browser.
 
