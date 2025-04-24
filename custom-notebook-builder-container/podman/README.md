@@ -1,5 +1,7 @@
 Pulled and referenced from: https://github.com/containers/image_build
 
+If using an M-powered mac, build the container with build-arguments: `--platform linux/amd64`
+
 
 comment]: <> (***ATTENTION*** ***WARNING*** ***ALERT*** ***CAUTION*** ***DANGER***)
 [comment]: <> ()
