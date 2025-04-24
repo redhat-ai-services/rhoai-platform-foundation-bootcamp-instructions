@@ -50,14 +50,14 @@ We can run this image using Podman and build/push our custom notebooks from with
 [.console-input]
 [source,terminal]
 ----
-podman run -it --name custom-notebook-builder quay.io/asheet/custom-nb-builder-container:latest
+podman run -it --privileged --name custom-notebook-builder quay.io/asheet/custom-nb-builder-container:latest
 ----  
 
 If running on an M-powered Mac, you will need to use the `--platform linux/amd64` flag to run the container.
 [.console-input]
 [source,terminal]
 ----
-podman run -it --platform linux/amd64 --name custom-notebook-builder quay.io/asheet/custom-nb-builder-container:latest
+podman run -it --privileged --platform linux/amd64 --name custom-notebook-builder quay.io/asheet/custom-nb-builder-container:latest
 ----  
 
 This will run the container and you will now be inside the container.
