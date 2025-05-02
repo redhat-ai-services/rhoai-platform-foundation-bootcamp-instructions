@@ -53,7 +53,7 @@ In our case, we want to set up a _parasol-insurance-dev_ overlay.
 [.bordershadow]
 image::01_change_repo_url.png[Change repoUrl]
 
-. Next lets create a new overlay named `parasol-insurance-dev`. Copy `componets/argocd/apps/overlays/eus-2.16` and paste it as `components/argocd/apps/overlays/parasol-insurance-dev`.
+. Next lets create a new overlay named `parasol-insurance-dev`. Copy `componets/argocd/apps/overlays/rhoai-eus-2.16` and paste it as `components/argocd/apps/overlays/parasol-insurance-dev`.
 
 . Change the `line 7` of the `patch-cluster-config-app-of-apps.yaml` file to `path: clusters/overlays/parasol-insurance-dev`.
 
@@ -205,7 +205,7 @@ Here is where we'll be adding our new resources.
 +
 NOTE: Remember to add the `base` and `overlays` files and folders. Make sure you have the `parasol-insurance-dev` overlay in the `overlays` folder for Argo to pick up what it needs for the _parasol-insurance-dev_ environment.
 
-. In the `tentans/parasol-insurance/namespaces/base` folder, create a new file named `kustomization.yaml` add the below content to the file:
+. In the `tenants/parasol-insurance/namespaces/base` folder, create a new file named `kustomization.yaml` add the below content to the file:
 
 +
 .kustomization.yaml
