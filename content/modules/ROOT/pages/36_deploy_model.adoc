@@ -69,7 +69,7 @@ resources:
 ----
 ====
 
-. Create a data connection with the minio details. Create a file named 'data-connection.yaml' inside the `multi-model-serving/base` directory with the minio details. Make sure to add the RHOAI labels so it will show in the RHOAI Dashboard.
+. Create a data connection with the minio details. Create a file named `data-connection.yaml` inside the `multi-model-serving/base` directory with the minio details. Make sure to add the RHOAI labels so it will show in the RHOAI Dashboard.
 
 +
 .Solution
@@ -101,7 +101,7 @@ type: Opaque
 ----
 ====
 
-. To create the custom serving Triton runtime, create a file named 'serving-runtime.yaml' inside the `multi-model-serving/base` directory with the following content: 
+. To create the custom serving Triton runtime, create a file named `serving-runtime.yaml` inside the `multi-model-serving/base` directory with the following content: 
 
 +
 .multi-model-serving/base/serving-runtime.yaml
@@ -204,7 +204,7 @@ spec:
 ## Inference Service
 Once we have our serving runtime, we can use it as the runtime for our Inference Service.
 
-. To create the Inference Service, create a file named 'inference-service.yaml' inside the `multi-model-serving/base` directory. Make sure to add the RHOAI labels so we can view it in the RHOAI dashboard.
+. To create the Inference Service, create a file named `inference-service.yaml` inside the `multi-model-serving/base` directory. Make sure to add the RHOAI labels so we can view it in the RHOAI dashboard.
 
 
 +
@@ -275,6 +275,11 @@ spec:
 . Wait for the application to sync in Argo.
 
 . Navigate to RHOAI, and validate that there is a new model serving under the `Models` tab, and check that its status looks green.
+
+[TIP]
+====
+To check your work please refer to https://github.com/redhat-ai-services/ai-accelerator-qa/tree/2.16-parasol-dev-prod[This Branch] 
+====
 
 ## Test the served model
 

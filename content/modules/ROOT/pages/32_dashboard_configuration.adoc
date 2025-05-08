@@ -43,7 +43,7 @@ NOTE: In RHOAI Dashboard>Settings>Cluster Settings>Stop idle notebooks
 If culling is enabled by ConfigMap, but then disabled in RHOAI Dashboard settings. The ConfigMap `notebook-controller-culler-config` will be deleted. 
 
 ## Optional: Update the Idle Notebook Culler in forked repository
-Because our AI-accelerator project is using GitOps/ArgoCD, we'll need to update the `components/operators/openshift-ai/instance/components/idle-notebook-culling/culler-config.yaml.yaml` for our changes to be applied. (GitOps is managing the `notebook-controller-culler-config` ConfigMap, so any changes made in the dashboard will be reverted by GitOps.)
+Because our AI-accelerator project is using GitOps/ArgoCD, we'll need to update the `components/operators/openshift-ai/instance/components/idle-notebook-culling/culler-config.yaml` for our changes to be applied. (GitOps is managing the `notebook-controller-culler-config` ConfigMap, so any changes made in the dashboard will be reverted by GitOps.)
 
 Edit the `components/operators/openshift-ai/instance/components/idle-notebook-culling/culler-config.yaml` file and change the culling period to 90 minutes:
 
@@ -64,6 +64,11 @@ data:
 ```
 
 After saving the changes and pushing to your forked repository, give the RHOAI Dashboard a few minutes to update. The changes should now be available.
+
+[TIP]
+====
+To check your work please refer to https://github.com/redhat-ai-services/ai-accelerator-qa/tree/2.16-parasol-dev-prod[This Branch] 
+====
 
 
 ## Workbench and Model Server Sizes
@@ -116,7 +121,7 @@ After making changes and saving, give the RHOAI Dashboard a few minutes to updat
 
 Since we are utilizing GitOps/ArgoCD in our cluster, we will need to update our forked project for our changes to be updated/synced on our cluster.
 
-In the `/components/operators/openshift-ai/instance/overlays/eus-2.##/kustomization.yaml`, the components are referencing:
+In the `/components/operators/openshift-ai/instance/overlays/stable-2.##/kustomization.yaml`, the components are referencing:
 
 ```
 - ../../components/notebook-pod-sizes
@@ -243,4 +248,9 @@ After making changes and saving, give the RHOAI Dashboard a few minutes to updat
 [%collapsible]
 ====
 image::custom-notebook-size.png[]
+====
+
+[TIP]
+====
+To check your work please refer to https://github.com/redhat-ai-services/ai-accelerator-qa/tree/2.16-parasol-dev-prod[This Branch] 
 ====

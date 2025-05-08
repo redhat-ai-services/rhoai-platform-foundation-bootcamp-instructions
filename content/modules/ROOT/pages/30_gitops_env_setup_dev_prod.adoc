@@ -285,11 +285,10 @@ git push origin main
 ./bootstrap.sh
 ...
 
-1. parasol-insurance-dev        6. rhoai-fast-aws-gpu
-2. rhoai-eus-2.16-aws-gpu       7. rhoai-fast
-3. rhoai-eus-2.16	              8. rhoai-stable-2.10
-4. rhoai-eus-2.8-aws-gpu        9. rhoai-stable-2.13-aws-gpu
-5. rhoai-eus-2.8	              10. rhoai-stable-2.13
+1. parasol-insurance-dev        5. rhoai-fast-aws-gpu
+2. rhoai-eus-2.16-aws-gpu       6. rhoai-stable-2.19-aws-gpu
+3. rhoai-eus-2.16               7. rhoai-stable-2.19
+4. rhoai-fast                   8. rhoai-stable-2.19
 ----
 
 +

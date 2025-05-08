@@ -216,6 +216,18 @@ This takes some time to build. It will build the base image first and then build
 
 . A new repository named `workbench-images` will get created in your quay.io account. This will get created as a Private repository. Convert it into a public repository in the settings.
 
+.How to make a quay.io repository public
+[%collapsible]
+====
+. Go to your quay.io repository and click on the _**Settings**_ tab.
+. Scroll down to the _**Repository Visibility**_ section.
+. Click on the _**Make Public**_ button.
+. Confirm the action by clicking on the _**Make Public**_ button again.
+. The repository is now public and can be accessed by anyone.
+====
+
+## Create a custom-workbench in RHOAI
+
 . Let's now add our newly build image (that's in your quay repository) to RHOAI. In the `parasol-insurance` tenant (`ai-accelerator/tenants/parasol-insurance`), create a directory named `custom-workbench`
 
 . Create the `base` and `overlays` directories inside the `custom-workbench` directory
@@ -457,6 +469,16 @@ hello_world=text2art("Hello World")
 print(hello_world)
 ```
 
+====
+
+[NOTE]
+====
+Please add an overlay for the `parasol-insurance-prod` environment as well. This is not covered in this lab but is a good exercise to do.
+====
+
+[TIP]
+====
+To check your work please refer to https://github.com/redhat-ai-services/ai-accelerator-qa/tree/2.16-parasol-dev-prod[This Branch] 
 ====
 
 ## Questions for Further Consideration

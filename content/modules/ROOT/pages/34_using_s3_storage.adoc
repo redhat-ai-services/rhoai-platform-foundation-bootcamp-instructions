@@ -132,6 +132,11 @@ The *minio-ui* route can be found in _**object-datastore**_ namespace under _**R
 
 Explore the S3 storage.
 
+[TIP]
+====
+To check your work please refer to https://github.com/redhat-ai-services/ai-accelerator-qa/tree/2.16-parasol-dev-prod[This Branch] 
+====
+
 ## Explore S3 with Boto3
 
 We have previously used a custom workbench to explore how to train a model. Now we will use a standard workbench to explore the S3 storage using the Boto3 Python package.
@@ -257,7 +262,7 @@ type: Opaque
 ----
 ====
 
-. Create a file named `standard-workbench-notebook.yaml` inside the `standard-workbench/base` directory. This yaml should be a `Notebook` RHOAI resource with the `s2i-generic-data-science-notebook:2024.1` image. It should reference the PVC storage and the data connection resource that we created earlier. TIP: You can find an example/reference Notebook resource by using the OpenShift search.
+. Create a file named `standard-workbench-notebook.yaml` inside the `standard-workbench/base` directory. This yaml should be a `Notebook` RHOAI resource with the `s2i-generic-data-science-notebook:2024.2` image. It should reference the PVC storage and the data connection resource that we created earlier. TIP: You can find an example/reference Notebook resource by using the OpenShift search.
 
 +
 .Solution
@@ -415,6 +420,16 @@ resources:
 +
 [.bordershadow]
 image::standard-workbench.png[Standard workbench]
+
+[NOTE]
+====
+Please add an overlay for the `parasol-insurance-prod` environment as well. This is not covered in this lab but is a good exercise to do.
+====
+
+[TIP]
+====
+To check your work please refer to https://github.com/redhat-ai-services/ai-accelerator-qa/tree/2.16-parasol-dev-prod[This Branch] 
+====
 
 ## Explore S3 in RHOAI Workbench
 
