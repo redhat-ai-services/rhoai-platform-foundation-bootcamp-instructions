@@ -73,7 +73,7 @@ To check your work please refer to https://github.com/redhat-ai-services/ai-acce
 
 ## Workbench and Model Server Sizes
 
-When launching workbenches or model servers from the RHOAI dashboard, users can select from several default sizes. These default options might not suit your organization's needs. In such cases, you can use custom model server and notebook size configurations. To do this edit the `odh-dashboard-config` OdhDashboardConfig resource in namespace `redhat-ods-applications`. You can use the OpenShift Dashboard -> Search or navigate to Home -> API explorer and filter ford `OdhDashboardConfig`:
+When launching workbenches or model servers from the RHOAI dashboard, users can select from several default sizes. These default options might not suit your organization's needs. In such cases, you can use custom model server and notebook size configurations. To do this edit the `odh-dashboard-config` OdhDashboardConfig resource in namespace `redhat-ods-applications`. You can use the OpenShift Dashboard -> Search or navigate to Home -> API explorer and filter for `OdhDashboardConfig`:
 
 [.console-input]
 [source,yaml]
