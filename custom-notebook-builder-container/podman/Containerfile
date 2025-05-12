@@ -74,6 +74,11 @@ RUN mkdir -p /home/podman/.local/share/containers && \
     chown podman:podman -R /home/podman && \
     chmod 644 /etc/containers/containers.conf
 
+#install docker
+RUN dnf -y install docker && \
+    dnf clean all && \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
 # Copy & modify the defaults to provide reference if runtime changes needed.
 # Changes here are required for running with fuse-overlay storage inside container.
 RUN sed -e 's|^#mount_program|mount_program|g' \
