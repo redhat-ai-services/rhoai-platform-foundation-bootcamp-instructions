@@ -60,18 +60,18 @@ cd ai-accelerator
 git remote add upstream https://github.com/redhat-ai-services/ai-accelerator.git
 ----
 
-## Bootstrap the Demo Cluster
+## Bootstrap the GPU Cluster
 
 Carefully follow the instructions found in https://github.com/redhat-ai-services/ai-accelerator/blob/main/documentation/installation.md[`documentation/installation.md`], with the following specifics:
 
 [start=6]
-. Use the _**Demo**_ cluster credentials when logging into OpenShift
+. Use the _**GPU**_ cluster credentials when logging into OpenShift
 . Select 1 for the `rhoai-eus-2.16-aws-gpu` overlay when prompted: 
 
 [.bordershadow]
 image::bootstrapOptions.png[]
 
-Since we are using GPUs for the demo instance, we've selected the overlay ending with `*-aws-gpu`. This installs the Nvidia GPU Operator and the Node Feature Discovery (NFD) Operator in additional to configuring an additional OpenShift MachineSet that utilizes an AWS machine containing Nvidia hardware.
+Since we are using GPUs for the GPU instance, we've selected the overlay ending with `*-aws-gpu`. This installs the Nvidia GPU Operator and the Node Feature Discovery (NFD) Operator in additional to configuring an additional OpenShift MachineSet that utilizes an AWS machine containing Nvidia hardware.
 
 Next, the bootstrap script will prompt you to change the GitOps configuration to point to your forked repository (instead of the main repo), select 1 - Yes since we want to use our forked repo on our lab cluster environment, so that we can make changes to the content and have those synchronized using GitOps:
 
@@ -105,7 +105,7 @@ This GPU overlay also uses _**MachineAutoscalers**_. Since there are Inferencing
 We will cover the ai-accelerator project overview in a later section.
 
 ---
-Continue using the _**DEMO**_ cluster for the subsequent exercises.
+Continue using the _**GPU**_ cluster for the subsequent exercises.
 
 ## Questions for Further Consideration
 
