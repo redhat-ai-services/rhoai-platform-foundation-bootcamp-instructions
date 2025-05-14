@@ -264,8 +264,7 @@ metadata:
     opendatahub.io/notebook-image-creator: admin
     opendatahub.io/notebook-image-desc: This is a custom notebook for running the parasol insurance code
     opendatahub.io/notebook-image-name: Custom Notebook
-    opendatahub.io/notebook-image-url: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.11-2024b_{update_this}
-'
+    opendatahub.io/notebook-image-url: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.11-2024b_{update_this}'
     opendatahub.io/recommended-accelerators: '[]'
   name: custom-notebook
   namespace: redhat-ods-applications
