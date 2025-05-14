@@ -20,7 +20,7 @@ The FLAN-T5 is a Large Language Model open sourced by Google under the Apache li
 
 The model has been uploaded to minio S3 automatically when we ran the bootstrap script. The inference service uses the _TGIS Standalone ServingRuntime for KServe_ and is _**not**_ using a GPU.
 
-Take a look at the InferenceService and the ServingRuntime resource in your _**Demo**_ cluster.
+Take a look at the InferenceService and the ServingRuntime resource in your _**GPU**_ cluster.
 
 Now let's take a look at the https://github.com/redhat-ai-services/ai-accelerator/tree/main/tenants/ai-example/single-model-serving-vllm[single-model-serving-vllm] example. This inference service uses IBM's https://huggingface.co/ibm-granite/granite-3b-code-base[granite-3b-code-base] model.
 
@@ -87,7 +87,7 @@ Testing this model includes the following steps:
 - Clone your fork of ai-example repository in Jupiter Notebook in created workbench
 - Open tenants/ai-example/multi-model-serving/test/test-using-grpc.ipynb Jupiter Notebook and run through cells.
 - Change values in the data field in the fifth cell to observe how prediction result change.
-- Open tenants/ai-example/multi-model-serving/test/test-using-rest.ipynb Jupiter Notebook. In the first cell make sure to replace apps base URL in infer_url field with apps base URL of your demo cluster. Run through notebook cells and observe results.
+- Open tenants/ai-example/multi-model-serving/test/test-using-rest.ipynb Jupiter Notebook. In the first cell make sure to replace apps base URL in infer_url field with apps base URL of your gpu cluster. Run through notebook cells and observe results.
 - Change values in the data field in the third cell to observe how prediction result change.
 
 #### Testing FLAN-T5 small model
@@ -95,14 +95,14 @@ Testing this model includes the following steps:
 
 - Create workbench in ai-example-single-model-serving Data Science Project using Standard Data Science Python v3.11 notebook image
 - Clone your fork of ai-example repository in Jupiter Notebook in created workbench
-- Open tenants/ai-example/single-model-serving-tgis/test/test-using-grpc.iypnb Jupiter Notebook. In the first cell make sure to replace apps base URL in infer_endpoint field with apps base URL of your demo cluster. Run through notebook cells and observe results.
+- Open tenants/ai-example/single-model-serving-tgis/test/test-using-grpc.iypnb Jupiter Notebook. In the first cell make sure to replace apps base URL in infer_endpoint field with apps base URL of your gpu cluster. Run through notebook cells and observe results.
 - As recommended in notebook comments try changing question in the third cell and observe answers. Explain why answers are often not correct.
 
 #### Testing Granite model
 Testing this model includes the following steps:
 
 - Reuse the workbench from the previous test
-- Open tenants/ai-example/single-model-serving-vllm/test/granite-test.ipynb Jupiter Notebook. In the first cell make sure to replace apps base URL in infer_endpoint field with apps base URL of your demo cluster. Run through notebook cells and observe results.
+- Open tenants/ai-example/single-model-serving-vllm/test/granite-test.ipynb Jupiter Notebook. In the first cell make sure to replace apps base URL in infer_endpoint field with apps base URL of your gpu cluster. Run through notebook cells and observe results.
 - Note that answers provided by this model will be unintelligible. This is a known issue and being investigated.
 
 ### References

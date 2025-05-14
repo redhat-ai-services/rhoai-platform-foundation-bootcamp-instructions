@@ -108,7 +108,7 @@ Now that we understand what Retrieval-Augmented Generation is, lets deploy and r
 The example below is sourced from: https://github.com/rh-aiservices-bu/llm-on-openshift. It is slightly modified for this example and feel free to try out the other examples in the project. This example uses PGVector as the vector database and the Mistral-7B-Instruct-v0.2 model as the LLM (using GPU).
 
 ### Let's get started
-Using the _**DEMO**_ cluster
+Using the _**GPU**_ cluster
 
 . Create a new Data Science Project named `rag-llm-demo`.
 

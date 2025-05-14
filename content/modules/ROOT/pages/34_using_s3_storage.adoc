@@ -87,7 +87,8 @@ resources:
 ----
 ====
 
-. Add the overlay for `parasol-insurance-dev`, and `parasol-insurance-prod`. This should be a `kustomization.yaml` file pointing to the overlays directories for `parasol-insurance-dev` and `parasol-insurance-prod`.
++
+. Add the overlay for `parasol-insurance-dev`. This should be a `kustomization.yaml` file pointing to the overlay directory for `parasol-insurance-dev`.
 
 +
 .Solution
@@ -104,7 +105,14 @@ kind: Kustomization
 resources:
   - ../../base
 ----
+====
 
+. (Optional) Create for prod overlay. Add the overlay for `parasol-insurance-prod`. This should be a `kustomization.yaml` file pointing to the overlay directory for `parasol-insurance-prod`.
+
++
+.Solution
+[%collapsible]
+====
 .tenants/parasol-insurance/minio/overlays/parasol-insurance-prod/kustomization.yaml
 
 [.console-input]
@@ -421,10 +429,9 @@ resources:
 [.bordershadow]
 image::standard-workbench.png[Standard workbench]
 
-[NOTE]
-====
-Please add an overlay for the `parasol-insurance-prod` environment as well. This is not covered in this lab but is a good exercise to do.
-====
+
+. (Optional) Add an overlay for the `parasol-insurance-prod` environment.
+
 
 [TIP]
 ====

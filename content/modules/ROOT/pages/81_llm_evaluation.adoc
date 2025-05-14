@@ -4,7 +4,7 @@ In this section we will cover how Large Language Models can be evaluated using L
 
 [WARNING]
 ====
-This lab only works with rhoai-eus-2.16-aws-gpu overlay on Demo cluster.
+This lab only works with rhoai-eus-2.16-aws-gpu overlay on GPU cluster.
 Qwen_Instruct model used in the lab requires gpu node and trustyai ConfigMap patching instructions are not applicable for RHOAI 2.18 due to the way how operator now controls that ConfigMap
 ====
 
