@@ -11,12 +11,12 @@ This means that your forked project does not have the latest changes and is behi
 To sync and get the latest changes, click the `Sync fork` button and it should expand telling you that “This branch is out-of-date”. Click the green “Update branch” button and your forked project should have the latest changes. 
 
 [.bordershadow]
-image::sync_dropdown.png[]
+image::sync_dropdown.png[[width=35%]]
 
 After your branch syncs with the upstream project, you should have the latest changes. You can check to see if your branch is up-to-date by looking at the commit history. If you see that your branch is up-to-date, then you have successfully synced your forked project with the upstream project. 
 
 [.bordershadow]
-image::up_to_date.png[]
+image::sync_up_to_date.png[]
 
 If you click the “Discard X commits”, this will discard your changes and update your forked project to mirror exactly the upstream project. You will lose your changes.
 
