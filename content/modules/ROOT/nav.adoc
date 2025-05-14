@@ -44,4 +44,4 @@
     ** 24. xref:disconnected_install.adoc[RHOAI on Disconnected Environment]
 
 * 25. xref:99_useful_tips.adoc[Useful Tips]
-* 26. xref:97_syncing_fork.adoc[Troubleshooting]
+* 26. xref:97_syncing_fork.adoc[Syncing Forked Project]
