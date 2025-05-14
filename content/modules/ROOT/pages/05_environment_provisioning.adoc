@@ -1,6 +1,6 @@
 :preinstall_operators: %preinstall_operators%
 
-# Provisioning a Demonstration Environment
+# Provisioning a GPU Environment
 
 The subsequent sections of this lab will utilize three instances of the Red Hat OpenShift Container Platform Cluster:
 

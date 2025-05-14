@@ -1,4 +1,4 @@
-# Useful tips for working with demo environment and taking notes
+# Useful tips for working with GPU environment and taking notes
 
 ## ArgoCD 
 
