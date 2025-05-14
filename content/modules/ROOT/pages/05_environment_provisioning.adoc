@@ -4,40 +4,40 @@
 
 The subsequent sections of this lab will utilize three instances of the Red Hat OpenShift Container Platform Cluster:
 
-. **Demo Cluster**: for running the model training and deployment exercises
+. **GPU Cluster**: for running the model training and deployment exercises
 . **Dev Cluster**: to simulate a development OpenShift cluster
-. **Prod Cluster**: to simulate a production OpenShift cluster
+. (Optional) **Prod Cluster**: to simulate a production OpenShift cluster
 
-In this section we will order all three clusters at demo.redhat.com. Note that these clusters are fairly short lived, typically they have a 6 hour runtime and are deleted after 48 hours, although the runtime can be temporarily extended as needed.
+In this section we will order the clusters at demo.redhat.com. Note that these clusters are fairly short lived, typically they have a 6 hour runtime and are deleted after 48 hours, although the runtime can be temporarily extended as needed.
 
-The demo clusters typically take 1-2 hours to provision, although they may take a little longer on Monday mornings as they are using AWS spot instances and demand is usually high at the start of the work week. So it's suggested to provision them, and continue with the subsequent sections that don't require cluster access yet.
+The  clusters typically take 1-2 hours to provision, although they may take a little longer on Monday mornings as they are using AWS spot instances and demand is usually high at the start of the work week. So it's suggested to provision them, and continue with the subsequent sections that don't require cluster access yet.
 
-## Provision the Demo Cluster
+## Provision the GPU Cluster
 
-The first cluster where we will run our demonstration projects requires a little more resources that the other two, so lets provision this first.
+The GPU cluster where we will run our demonstration projects requires a little more resources that the other two, so lets provision this first.
 
 . In a web browser, navigate to demo.redhat.com and request a new instance of https://demo.redhat.com/catalog?search=aws&item=babylon-catalog-prod%2Fsandboxes-gpte.sandbox-ocp.prod[_**AWS with OpenShift Open Environment**_, window=_blank]. Note that this is a blank / empty instance of OpenShift with no other operators or demo components preloaded, ideal for the subsequent lab exercises where we will provision RHOAI.
 
-WARNING: During testing (Feb 2025) it was found that the Node Feature Discovery operator breaks in the latest version of **OpenShift 4.17**. We have created a https://github.com/redhat-ai-services/ai-accelerator/pull/102[temporary workaround] that sets an explicit version number for the NFD operator images, but does require you to chose a specific version of OpenShift that matches. For this reason, we highly recommend selecting **OpenShift 4.16** from the drop down, but if you select a different version you will have to manually edit the NFD operator template in your Git repository to get it to work correctly.
-
++
 [.bordershadow]
 image::OrderAWS_env.png[width=35%]
 
 . Change the the **Control Plane Instance Type** to **m6a.4xlarge**, as the default machine configuration does not have sufficient compute resources for all of the various RHOAI and related operators we will be installing.
 
++
 [.bordershadow]
 image::OrderAWS_controlplane.png[width=35%]
 
 . You should be able to use the default (latest) version of OpenShift, however since there are continuous new product releases it's a good idea to double check the https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[RHOAI Documentation, window=_blank], under the **Supported configurations** subsection to ensure compatibility.
 
 
-## Provision the Development and Production Clusters
+## Provision the Development and Production (Optional) Clusters
 
-These are simple clusters used to demonstrate Kustomize overlays in a subsequent lab. One cluster will be used for the _**Dev**_ environment and the other for the _**Prod**_ environment.
+These are simple clusters used to demonstrate Kustomize overlays in a subsequent lab. One cluster will be used for the _**Dev**_ environment. (Optional) The other for the _**Prod**_ environment.
 
 . Navigate to demo.redhat.com and order the https://catalog.demo.redhat.com/catalog?item=babylon-catalog-prod%2Fsandboxes-gpte.ocp-wksp.prod[_**Red Hat OpenShift Container Platform Cluster(AWS)**_, window=_blank] (Note: this is a different link / catalog item from the one above)
 . Select all default configuration options
-. Repeat these steps twice, one for Dev and the next for Prod clusters
+. (Optional) Repeat these steps if using for Prod cluster
 
 [.bordershadow]
 image::clustersettings_Dev_Prod.png[width=50%]
