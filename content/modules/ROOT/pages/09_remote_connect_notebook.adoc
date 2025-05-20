@@ -149,7 +149,7 @@ image::vscode_connect_prompt.png[]
 [.bordershadow]
 image::vscode_kernel_name.png[]
 
-* Choose **Python 3.9** from the list of available kernels. 
+* Choose **Python 3.11** from the list of available kernels. 
 
 [.bordershadow]
 image::vscode_recommended_kernel.png[]
