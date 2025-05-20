@@ -20,7 +20,7 @@ In this tutorial we will setup the Triton Runtime (NVIDIA Triton Inference Serve
 .Solution
 [%collapsible]
 ====
-.tenants/parasol-insurance/multi-model-serving/overlays/parasol-insurance-dev/kustomization.yaml
+./multi-model-serving/overlays/parasol-insurance-dev/kustomization.yaml
 
 [.console-input]
 [source,yaml]
@@ -36,7 +36,7 @@ resources:
 . Create a `kustomization.yaml` inside the `multi-model-serving/base` directory. This should have the `parasol-insurance` namespace, as well as **data-connection, inference-service, and serving-runtime** as resources.
 
 +
-.tenants/parasol-insurance/multi-model-serving/base/kustomization.yaml
+./multi-model-serving/base/kustomization.yaml
 
 [.console-input]
 [source,yaml]
@@ -52,7 +52,7 @@ resources:
 .Solution
 [%collapsible]
 ====
-.tenants/parasol-insurance/multi-model-serving/base/kustomization.yaml
+./multi-model-serving/base/kustomization.yaml
 
 [.console-input]
 [source,yaml]
@@ -75,7 +75,7 @@ resources:
 .Solution
 [%collapsible]
 ====
-.tenants/parasol-insurance/multi-model-serving/base/data-connection.yaml
+./multi-model-serving/base/data-connection.yaml
 
 [.console-input]
 [source,yaml]
@@ -104,7 +104,7 @@ type: Opaque
 . To create the custom serving Triton runtime, create a file named `serving-runtime.yaml` inside the `multi-model-serving/base` directory with the following content: 
 
 +
-.tenants/parasol-insurance/multi-model-serving/base/serving-runtime.yaml
+./multi-model-serving/base/serving-runtime.yaml
 
 [.console-input]
 [source,yaml]
@@ -208,7 +208,7 @@ Once we have our serving runtime, we can use it as the runtime for our Inference
 
 
 +
-.tenants/parasol-insurance/multi-model-serving/base/inference-service.yaml
+./multi-model-serving/base/inference-service.yaml
 
 [.console-input]
 [source,yaml]
@@ -241,7 +241,7 @@ spec:
 .Solution
 [%collapsible]
 ====
-.tenants/parasol-insurance/multi-model-serving/base/inference-service.yaml
+./multi-model-serving/base/inference-service.yaml
 
 [.console-input]
 [source,yaml]
