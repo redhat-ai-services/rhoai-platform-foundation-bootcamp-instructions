@@ -89,8 +89,10 @@ image::pipeline_run_1.png[]
 
 +
 `python pipelines/02_submitted_pipeline_via_route.py`
+
 +
 This will create a pipeline and also submit a run. To view this run go to `RHOAI Dashboard` -> `Experiments` -> `Experiments and runs`.
+
 +
 [.bordershadow]
 image::pipeline_runs.png[]
