@@ -21,6 +21,8 @@ https://github.com/rh-aiservices-bu/fraud-detection/blob/main/data/train.csv[Dow
 +
 https://github.com/rh-aiservices-bu/fraud-detection/blob/main/data/validate.csv[Download validate.csv]
 
+=== Create notebook to train a model
+
 . Open the `custom-workbench` in `parasol-insurance` project. Click on Launcher and create a new python notebook `1.train_model.ipynb`
 +
 
@@ -297,7 +299,9 @@ print("How likely was Sally's transaction to be fraudulent? ")
 print("{:.5f}".format(100 * np.squeeze(prediction)) + "%")
 ----
 
-+
+
+=== Create a new notebook to save the model
+
 . Create a new jupyter notebook  `2.save_model.ipynb` and add the following content:
 
 +
@@ -541,7 +545,7 @@ if num_files == 0:
 list_objects("models")
 ----
 
-+
+=== Create a pipeline using Elyra pipeline editor
 
 . Click on `Pipeline Editor` and create a new pipeline. Name the pipeline as `train_save.pipeline``
 +
@@ -551,7 +555,7 @@ image::pipeline_editor.png[]
 
 + 
 
-. Drag and drop `notebook 1` and   `notebook 2` into the pipeline editor. 
+. Drag and drop two notebooks just created (`1.train_model` and   `2.save_model`) into the pipeline editor. 
 +
 
 . Connect the output port of node `1.train_model` to the input port of node `2.save_model`.
@@ -565,11 +569,11 @@ image::pipeline_editor.png[]
 image::pipeline_parameters.png[]
 +
 
-. Update the runtime image. 
+. Update the runtime image for both nodes to `Datascience with Python 3.11 (UBI9)` created in the previous section.
 
 +
 [.bordershadow]
-image::update_runtime.png[]
+image::elyra_runtime.png[]
 
 . Update S3 storage `Kubernetes Secrets` for node 2.save_model 
 +
@@ -586,6 +590,11 @@ AWS_DEFAULT_REGION: <AWS_DEFAULT_REGION>
 +
 
 . Click on Run icon to run the pipeline. Pipline run can be viewed on RHOAI dashboard. 
+
++
+[.bordershadow]
+image::elyra_run_pipeline.png[]
+
 
 ### Pipeline execution
 
