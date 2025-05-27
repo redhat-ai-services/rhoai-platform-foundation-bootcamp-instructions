@@ -29,7 +29,7 @@ image::Code_workbench_window.png[]
 The env file should look as follows after all the changes are done.
 [source,python]
 ----
-DEFAULT_STORAGE_CLASS="ocs-external-storagecluster-ceph-rbd"
+DEFAULT_STORAGE_CLASS="gp3-csi"
 DEFAULT_ACCESSMODES="ReadWriteOnce"
 KUBEFLOW_ENDPOINT="https://ds-pipeline-dspa-parasol-insurance.apps.cluster-vt9jb.dynamic.redhatworkshops.io"
 BEARER_TOKEN="sha256~0QQ0VTC87TQf6GsOKxm6ay4-_sw8O4x7ZWvzzZVo34I~" # oc whoami --show-token
@@ -52,13 +52,32 @@ BEARER_TOKEN="sha256~0QQ0VTC87TQf6GsOKxm6ay4-_sw8O4x7ZWvzzZVo34I~" # oc whoami -
 .. This will generate a yaml file named '00_compiled_pipeline.yaml'
 .. Download this file to your local machine
 .. Now go to RHOAI and into the Data Science Pipelines section. Click on `Import pipeline` and upload the file.
+
++
+[.bordershadow]
+image::import_pipeline.png[]
+
++
+[.bordershadow]
+image::import-pipeline-1.png[]
+
++
 .. To run this pipeline click on the Create Run option as follows:
 
 +
 [.bordershadow]
 image::Compiled_pipeline.png[]
 
++
+[.bordershadow]
+image::run_pipeline.png[]
++
+
 .. To check the run, go to the Runs section under the Data Science Pipelines section
++
+[.bordershadow]
+image::pipeline_run_1.png[]
++
 
 [start=2]
 . Next we will check the file `01_test_connection_via_route.py`. This just checks if we can connect to kfp with the route that we entered in the .env file. To run this go to the terminal in the notebook and execute the command: 
@@ -154,3 +173,9 @@ spec:
 
 
 . The `11_iris_training_pipeline.py` pipeline file showcases how to define an end to end pipeline. This pipeline contains steps like data prep, training the model, validating the model, converting it into onnx format and evaluating the model. This is a great basic example to study how data science pipelines work.
+
++
+[NOTE]
+Iris pipeline fails with an error. We need to fix it. 
+`ImportError: cannot import name 'split_complex_to_pairs' from 'onnx.helper' (/opt/app-root/lib64/python3.11/site-packages/onnx/helper.py)``
+
