@@ -180,5 +180,5 @@ spec:
 +
 [NOTE]
 Iris pipeline fails with an error. We need to fix it. 
-`ImportError: cannot import name 'split_complex_to_pairs' from 'onnx.helper' (/opt/app-root/lib64/python3.11/site-packages/onnx/helper.py)``
+`ImportError: cannot import name 'split_complex_to_pairs' from 'onnx.helper' (/opt/app-root/lib64/python3.11/site-packages/onnx/helper.py)`
 
