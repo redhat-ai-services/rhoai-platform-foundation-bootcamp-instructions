@@ -142,7 +142,7 @@ Provide your own token, you can find the token in the OpenShift Web Console by c
 
 +
 image::images/acc_detection_run_1.png[]
-+
+
 
 +
 . Create a cell to train the model, organize this cell to appear before the cell that defines the pipeline (`@kfp.dsl.pipeline`). The contents of this cell were crafted after from a combination of functions from https://github.com/rh-aiservices-bu/parasol-insurance/blob/dev/lab-materials/04/04-03-model-retraining.ipynb[04-03-model-retraining.ipynb]; we recommend you to compare this cell with the original notebook contents:
@@ -228,7 +228,7 @@ Notice how we use the output of the `download_data` task as the input of the `tr
 
 +
 image::images/acc_detect_run_2.png[]
-+
+
 
 . Create a cell to upload the model to s3 using the `boto3` package, organize this cell to appear before the cell that defines the pipeline (`@kfp.dsl.pipeline`):
 
@@ -298,14 +298,14 @@ def accident_detection_pipeline(model_obc: str = "accident-detection"):
 
 +
 image::images/accident_detection_pipeline.png[]
-+
+
 
 . Validate that the model is uploaded to the s3 bucket, by navigating to the s3 bucket in the minio console.
 
 +
 [.bordershadow]
 image::images/minio_s3_bucket.png[]
-+
+
 
 . Validate the resulting script: The script should look like this: https://github.com/redhat-ai-services/ai-accelerator-bootcamp/blob/main/source_code/40_pipelines/train-car-rekon.py[train-car-rekon.py]
 
