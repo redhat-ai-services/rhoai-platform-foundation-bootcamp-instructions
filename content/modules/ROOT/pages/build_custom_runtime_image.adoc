@@ -13,6 +13,30 @@ Take a look at the https://github.com/opendatahub-io/notebooks/blob/main/docs/de
 
 ## Creating a custom runtime image
 
+### Using Podman to run the builder container:
+We have created a container image that contains all the necessary tools to build the notebooks repository. This image is based on the repository: https://github.com/containers/image_build. You can find the image contents here: https://github.com/redhat-ai-services/rhoai-platform-foundation-bootcamp-instructions/tree/main/custom-notebook-builder-container/podman/Containerfile. This image is based on the latest fedora image and contains: podman, git, make, which, go, pip, python3.11 and pipenv. 
+
+The image has already been built for you and is located here: `quay.io/asheet/custom-nb-builder-container:latest`.
+
+We can run this image using Podman and build/push our custom notebooks from within the container. 
+
+. Run the following command to run the container on podman:
+
+[.console-input]
+[source,terminal]
+----
+podman run -it --privileged --name custom-notebook-builder quay.io/asheet/custom-nb-builder-container:latest
+----  
+
+If running on an M-powered Mac, you will need to use the `--platform linux/amd64` flag to run the container.
+[.console-input]
+[source,terminal]
+----
+podman run -it --privileged --platform linux/amd64 --name custom-notebook-builder quay.io/asheet/custom-nb-builder-container:latest
+----  
+
+This will run the container and you will now be inside the container.
+
 . Clone the notebooks git repository with the following command:
 
 + 
@@ -142,6 +166,9 @@ This takes some time to build. It will build the base image first and then build
 
 . A new repository named `runtime-images` will get created in your quay.io account. This will get created as a Private repository. Convert it into a public repository in the settings.
 
++
+. If your not able to build runtime-image, you can use the pre-built image `quay.io/arckrish/custom-runtime-images:runtime-datascience-ubi9-python-3.11-2024b_20250527` as a custom runtime image.
+
 . You can now use this image in your custom notebook. Open custom-workbench in parasol-insurance project. 
 + 
 
@@ -179,8 +206,7 @@ quay.io/arckrish/rt-images:runtime-datascience-ubi9-python-3.11-2023x_20250318
 [.bordershadow]
 image::add_runtime.png[]
 
-. Click on **Save and Close** to save the runtime image.
-+
+. Click on **Save and Close** to save the runtime image. 
 
 [.bordershadow]
 image::custom_runtime_image.png[]
