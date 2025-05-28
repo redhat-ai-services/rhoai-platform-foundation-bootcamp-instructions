@@ -311,7 +311,7 @@ image::minio_s3_bucket.png[]
 
 ## Create a pipeline to train a model
 
-. Create a `model-training-pipeline` directory in the `parasol-insurance` tenand directory.
+. Create a `model-training-pipeline` directory in the `parasol-insurance` tenants directory.
 
 . Create the `base` and `overlays` directories in the `model-training-pipeline` directory.
 
@@ -336,7 +336,6 @@ resources:
   - model-retrain-imagestream.yaml
   - model-retrain-pipeline.yaml
   - model-retrain-pipelinerun.yaml
-  - model-retrain-rbac.yaml
   - execute-kfp-task.yaml
 ----
 ====
@@ -370,7 +369,7 @@ metadata:
 [.console-input]
 [source,yaml]
 ----
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: model-retrain
@@ -382,7 +381,7 @@ spec:
       type: string
     - default: 'source_code/40_pipelines'
       description: Repo URL
-      name: GIT_CONTEXT
+      name: CONTEXT
       type: string
     - default: 'train-car-rekon.py'
       name: PIPELINE_SCRIPT
@@ -402,15 +401,19 @@ spec:
   tasks:
     - name: git-clone
       params:
-        - name: url
+        - name: URL
           value: $(params.GIT_URL)
-        - name: revision
+        - name: REVISION
           value: $(params.GIT_REVISION)
-        - name: gitInitImage
-          value: 'registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:868966ef9d4b54952d8a74eb83bba40eb1f52c0148994fa704efd0e3797c61c5'
       taskRef:
-        kind: ClusterTask
-        name: git-clone
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
       workspaces:
         - name: output
           workspace: source
@@ -418,15 +421,21 @@ spec:
       params:
         - name: VERSION
           value: $(params.PYTHON_IMAGE)
-        - name: PATH_CONTEXT
-          value: $(params.GIT_CONTEXT)
+        - name: CONTEXT
+          value: $(params.CONTEXT)
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
       runAfter:
         - git-clone
       taskRef:
-        kind: ClusterTask
-        name: s2i-python
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: s2i-python
+          - name: namespace
+            value: openshift-pipelines
       workspaces:
         - name: source
           workspace: source
@@ -477,8 +486,6 @@ spec:
   workspaces:
   - name: source
     volumeClaimTemplate:
-      metadata:
-        creationTimestamp: null
       spec:
         accessModes:
         - ReadWriteOnce
@@ -486,44 +493,6 @@ spec:
           requests:
             storage: 1Gi
         volumeMode: Filesystem
-----
-====
-
-. Create file `tenants/parasol-insurance/model-training-pipeline/base/model-retrain-rbac.yaml`.
-
-+
-.Solution
-[%collapsible]
-====
-.tenants/parasol-insurance/model-training-pipeline/base/model-retrain-rbac.yaml
-
-[.console-input]
-[source,yaml]
-----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: pipelines-dsp-access
-subjects:
-  - kind: ServiceAccount
-    name: pipelines
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: dsp-access
----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: dsp-access
-rules:
-  - verbs:
-      - get
-    apiGroups:
-      - ''
-      - route.openshift.io
-    resources:
-      - routes
 ----
 ====
 
@@ -538,7 +507,7 @@ rules:
 [.console-input]
 [source,yaml]
 ----
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: execute-kubeflow-pipeline
@@ -554,7 +523,7 @@ spec:
       type: string
       default: "latest"
     - name: SCRIPT
-      description: The location of the script to be executed
+      description: The name of the script to be executed
     - name: KUBEFLOW_ENDPOINT
       description: The endpoint URL for Kubeflow
       default: "https://ds-pipeline-dspa:8443"
