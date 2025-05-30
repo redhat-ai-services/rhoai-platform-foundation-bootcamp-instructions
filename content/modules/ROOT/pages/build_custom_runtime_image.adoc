@@ -213,7 +213,7 @@ image::custom_runtime_image.png[]
 
 ### Questions for Further Consideration
 
-. What aare the other ways to create a custom image for RHOAI? 
+. What are the other ways to create a custom image for RHOAI? 
 
 +
 
