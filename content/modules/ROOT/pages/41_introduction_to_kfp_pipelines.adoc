@@ -35,7 +35,9 @@ KUBEFLOW_ENDPOINT="https://ds-pipeline-dspa-parasol-insurance.apps.cluster-vt9jb
 BEARER_TOKEN="sha256~0QQ0VTC87TQf6GsOKxm6ay4-_sw8O4x7ZWvzzZVo34I~" # oc whoami --show-token
 ----
 
-. Open the terminal and run the following command to install pipenv: `pip install pipenv`
+. Open the terminal and enter the folder of cloned repository: `cd kubeflow-pipelines-examples`
+
+. Install pipenv with following command: `pip install pipenv`
 
 . Now we can install all the packages that are defined in the Pipfile. We can do this with the command: `pipenv install`
 
