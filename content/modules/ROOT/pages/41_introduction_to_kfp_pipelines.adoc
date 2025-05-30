@@ -97,7 +97,7 @@ This will create a pipeline and also submit a run. To view this run go to `RHOAI
 
 +
 [.bordershadow]
-image::pipeline_runs.png[]
+image::pipeline_experiments_runs_02_submitted_via_route.png[]
 
 +
 [start=4]
