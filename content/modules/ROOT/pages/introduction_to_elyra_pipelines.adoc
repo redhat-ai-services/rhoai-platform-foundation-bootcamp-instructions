@@ -23,7 +23,7 @@ https://github.com/rh-aiservices-bu/fraud-detection/blob/main/data/validate.csv[
 
 === Create notebook to train a model
 
-. Open the `custom-workbench` in `parasol-insurance` project. Click on Launcher and create a new python notebook `1.train_model.ipynb`
+. Open the `standard-workbench` in `parasol-insurance` project. Click on Launcher and create a new python notebook `1.train_model.ipynb`
 +
 
 [.bordershadow]
