@@ -575,6 +575,12 @@ resources:
 Validate your code against https://github.com/redhat-ai-services/ai-accelerator-qa/pull/new/42_working_with_pipeline[Branch for model_retrain pipeline config]
 ====
 
++
+[NOTE]
+====
+The `model-retrain-pipeline.yaml` refers previously mentioned https://github.com/redhat-ai-services/ai-accelerator-bootcamp/blob/main/source_code/40_pipelines/train-car-rekon.py#L99[train-car-recon.py], which uploads model file to S3 and expects that the bucket named `models` already exists. You can verify this in MinIO web interface and if necessary create missing bucket from there.
+====
+
 ## Experiments 
 A pipeline experiment is a workspace where you can try different configurations of your pipelines. You can use experiments to organize your runs into logical groups. 
 
