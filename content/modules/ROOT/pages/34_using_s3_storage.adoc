@@ -452,11 +452,24 @@ image::standard-workbench.png[Standard workbench]
 
 . As you can see there is a workbench running named _standard-workbench_. 
 
-. Use the kebab menu and select `Edit workbench`. View the _Environment Variables_ and notice in the _Data Connection_ section that it is selected to the minio data connection, click on `edit` to see the connection details.
+. Use the kebab menu and select `Edit workbench`. The _Environment Variables_ section is empty, while _Connections_ section shows already attached `minio-data-connection` of S3 type.
 
 +
 [.bordershadow]
-image::Workbench_conn_env_vars.png[]
+image::Workbench_Edit_rhoai2_19_conn_env_vars.png[]
+
+. Use the kebab menu of that connection and select `Edit` to see all connection details (i.e. `access key`, `Endpoint`, etc)
+
++
+[.bordershadow]
+image::Workbench_Edit_rhoai2_19_conn_details.png[]
+
++
+[NOTE]
+====
+User interface of older RHOAI versions, was showing S3 connection details directly in _Environment Variables_ section.
+Starting with RHOAI v2.19, these details can be found in a dedicated pop-up UI behind `Edit` function like described above.
+====
 
 . Launch the workbench and wait for the Jupyter notebook to start up.
 
