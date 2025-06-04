@@ -88,7 +88,7 @@ resources:
 ====
 
 +
-. Add the overlay for `parasol-insurance-dev`. This should be a `kustomization.yaml` file pointing to the overlay directory for `parasol-insurance-dev`.
+. Add the overlay for `parasol-insurance-dev`. This should be a `kustomization.yaml` file pointing to the minio's base directory for `parasol-insurance-dev`.
 
 +
 .Solution
