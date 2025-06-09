@@ -511,11 +511,13 @@ spec:
 ----
 ====
 
+WARNING: If the vllm pod is in the "Pending" state, we'll need to free up the GPU node. In the `ai-example-single-model-serving` project, delete the `granite-predictor` pod or reduce the `granite-predictor-deployment` pod count to 0. This will free up the GPU node and allow the `rag-llm-demo` project to use it. Note: Since ArgoCD is still managing the components, ArgoCD will automatically overwrite the changes and try to bring it back up. The vllm pod should have taken over the GPU node (and will try to start) whilst the granite-predictor should now be in the "Pending" state. (They both can run at the same time, but this will speed up the deployment of the vllm pod).
+
 NOTE: We are greatly reducing the amount of resources the LLM uses.
 
 ### Run through the Notebooks to test the LLM with RAG
 
-Download and run through these 3 notebooks in your workbench:
+Download these 3 notebooks in your workbench:
 
 1. https://github.com/rh-aiservices-bu/llm-on-openshift/blob/main/examples/notebooks/langchain/Langchain-PgVector-Ingest.ipynb[examples/notebooks/langchain/Langchain-PgVector-Ingest.ipynb, window=_blank]
 
@@ -530,7 +532,7 @@ or upload the repository to the workbench:
 
 #### Creating an index and populating it with documents using PostgreSQL+pgvector
 
-. Update the _Base Parameters and PostgreSQL info_
+. In the https://github.com/rh-aiservices-bu/llm-on-openshift/blob/main/examples/notebooks/langchain/Langchain-PgVector-Ingest.ipynb[examples/notebooks/langchain/Langchain-PgVector-Ingest.ipynb, window=_blank] notebook, update the _Base Parameters and PostgreSQL info_
 
 [.console-input]
 ```
@@ -545,7 +547,7 @@ NOTE: _Create the index and ingest the documents_ will take more than 5 minutes 
 
 #### Querying a PGVector index
 
-1. Update the _Base Parameters and PostgreSQL info:
+1. In the https://github.com/rh-aiservices-bu/llm-on-openshift/blob/main/examples/notebooks/langchain/Langchain-PgVector-Query.ipynb[examples/notebooks/langchain/Langchain-PgVector-Query.ipynb, window=_blank], update the _Base Parameters and PostgreSQL info:
 
 [.console-input]
 ```
@@ -556,7 +558,7 @@ COLLECTION_NAME = "rhoai-doc-2.16"
 Run through the notebook
 
 #### RAG example with Langchain, PostgreSQL+pgvector, and vLLM
-. Update the Python packages
+. In the https://github.com/rh-aiservices-bu/llm-on-openshift/blob/main/examples/notebooks/langchain/RAG_with_sources_Langchain-vLLM-PgVector.ipynb[examples/notebooks/langchain/RAG_with_sources_Langchain-vLLM-PgVector.ipynb, window=_blank], update the Python packages.
 +
 [.console-input]
 ```
