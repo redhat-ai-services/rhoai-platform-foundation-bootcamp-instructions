@@ -1,0 +1,145 @@
+= **Lab Guide: GitOps for NVIDIA GPU Operator Installation and GPU Slicing**
+
+This document outlines the steps to install the NVIDIA GPU Operator and configure GPU time-slicing using a GitOps approach. This method allows you to manage your cluster's desired state declaratively via a Git repository, ensuring configurations are version-controlled, auditable, and consistently deployable.
+
+== **1. GitOps Structure and Base Configuration (Prerequisites)**
+
+To implement this lab setup in a GitOps way, you would structure your configurations as YAML files within a Git repository. Your Git repository will typically contain a `base` directory for common cluster configurations and an `overlays` directory, where specific environment configurations (like your lab setup) are defined.
+
+Before applying your overlay configurations, ensure the fundamental components are in place. In a GitOps context, these operators are often installed cluster-wide via Operator Lifecycle Manager (OLM) subscriptions defined as YAML resources in your base GitOps repository.
+
+*   **Node Feature Discovery (NFD) Operator**: This operator **discovers hardware features and appropriately labels nodes** with this information.
+*   **NVIDIA GPU Operator**: This operator **installs necessary drivers and tooling** on GPU-enabled nodes and **integrates into Kubernetes** for scheduling pods that require GPU resources. It also ensures that containers are "injected" with the right drivers, configurations, and tools to properly use the GPU.
+
+== **2. Overlay Configuration for GPU Node Setup and Slicing**
+
+This section defines the specific configurations for your GPU nodes and how GPUs will be sliced, all as part of your GitOps overlay structure.
+
+=== **NVIDIA GPU Slicing Configuration**
+
+Time Slicing is a solution for **sharing GPUs** between different Pods. The NVIDIA GPU Operator enables oversubscription of GPUs through extended options for the NVIDIA Kubernetes Device Plugin. This allows workloads scheduled on oversubscribed GPUs to interleave with one another.
+
+This mechanism allows a system administrator to **define a set of replicas for a GPU**, each of which can be handed out independently to a pod. For example, a single T4 card can be made to appear as 4 different cards. It's important to note that **there is no memory or fault-isolation between these replicas**, meaning all Pods on this node will share the GPU memory without reservation, increasing the risk of Out-Of-Memory (OOM) errors if Pods are resource-intensive.
+
+Here's how to configure it:
+
+*   **ConfigMap for Slicing**:
+    *   Create a YAML file to define how you want to slice your GPUs.
+    *   This ConfigMap **must be named `time-slicing-config`** and **reside in the `nvidia-gpu-operator` namespace**.
+    *   You can define `replicas` for a GPU resource, e.g., `replicas: 4` for `nvidia.com/gpu` if you have a T4 card.
+[.console-input]
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: time-slicing-config
+  namespace: nvidia-gpu-operator
+data:
+  tesla-t4: |-
+    version: v1
+    sharing:
+      timeSlicing:
+        resources:
+        - name: nvidia.com/gpu
+          replicas: 4
+----
+*   **Patch for `ClusterPolicy`**:
+    *   You need to modify the `gpu-cluster-policy` within the `nvidia-gpu-operator` namespace to point to your `time-slicing-config`.
+    *   This is typically accomplished with a Kustomize patch.
+[source,yaml]
+----
+apiVersion: nvidia.com/v1
+kind: ClusterPolicy
+metadata:
+  name: gpu-cluster-policy
+  namespace: nvidia-gpu-operator
+spec:
+  devicePlugin:
+    config:
+      default: tesla-t4
+      name: time-slicing-config
+----
+
+*   **Patch for MachineSet Labels and Taints**:
+    *   To activate the specific slicing configuration you defined, you must **apply a necessary label** (e.g., `nvidia.com/device-plugin.config: tesla-t4`) to your MachineSet that provides the GPU nodes.
+[source,yaml]
+----
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  # ... other metadata
+spec:
+  # ... other spec
+  template:
+    spec:
+      metadata:
+        labels:
+          nvidia.com/device-plugin.config: tesla-t4
+----
+    *   If you also want to **taint your GPU nodes to restrict access** or ensure only GPU-requiring Pods land on them, you should **define these taints declaratively in your MachineSet**. This avoids manual `oc adm taint` commands.
+[source,yaml]
+----
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  # ... other metadata
+spec:
+  # ... other spec
+  template:
+    spec:
+      # ... other template spec
+      taints:
+        - key: restrictedaccess
+          value: "yes"
+          effect: NoSchedule
+----
+    *   Then, you must **apply the relevant toleration to the NVIDIA GPU Operator's `ClusterPolicy`** within the `nvidia-gpu-operator` namespace. This allows the operator to deploy its tooling on tainted nodes.
+[source,yaml]
+----
+apiVersion: nvidia.com/v1
+kind: ClusterPolicy
+metadata:
+  # ... other metadata
+  name: gpu-cluster-policy
+  namespace: nvidia-gpu-operator
+spec:
+  daemonsets:
+    tolerations:
+      - effect: NoSchedule
+        key: restrictedaccess
+        operator: Exists
+----
+        *   **Note**: The `nvidia.com/gpu` taint is a standard taint for which the NVIDIA Operator has a built-in toleration, so you don't need to explicitly add it to the `ClusterPolicy`. Components from Open Data Hub (ODH) or Red Hat OpenShift AI (RHOAI) that request GPUs will also have this toleration in place.
+
+=== **Autoscaler Configuration for GPU Nodes**
+
+As GPUs are expensive, they are good candidates for autoscaling.
+
+*   To help the Autoscaler understand the GPU type and work properly, you have to **set a specific label to the MachineSet**. For example, `cluster-api/accelerator: Tesla-T4-SHARED`.
+[source,yaml]
+----
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  # ... other metadata
+spec:
+  # ... other spec
+  template:
+    spec:
+      metadata:
+        labels:
+          cluster-api/accelerator: Tesla-T4-SHARED
+----
+*   To allow scaling to zero for GPU MachineSets, an annotation `machine.openshift.io/GPU: "1"` may need to be set manually on the MachineSet if not present after the first scale up.
+*   For environments with multiple Availability Zones (AZs), add `topology.kubernetes.io/zone` and `topology.ebs.csi.aws.com/zone` labels to the MachineSet template's node labels to ensure the Autoscaler simulates node provisioning in the correct AZ.
+
+== **3. GitOps Workflow for GPU Slicing**
+
+*   **Kustomization File**: Create a `kustomization.yaml` file in your `overlays/your-lab` directory to combine all these YAML resources.
+*   **Commit Changes**: Push all these YAML files, including the `kustomization.yaml`, to your Git repository.
+*   **GitOps Tool Sync**: Configure your GitOps tool (e.g., Argo CD) to monitor the `overlays/your-lab` path. When changes are committed, the GitOps tool will detect them and apply the manifests to your OpenShift cluster.
+*   **Validation**: Monitor the resources (e.g., pods) to ensure they are created and configured as expected.
+
+This GitOps approach ensures your lab environment's configuration for GPU slicing is **version-controlled, auditable, and consistently deployable**.
+

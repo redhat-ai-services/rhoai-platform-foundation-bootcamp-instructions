@@ -51,11 +51,11 @@ image::meanshift_metrics.png[]
 
 You can see that metrics values for Credit Score, Age, and Acceptance Probability have all dropped to 0 indicating that there is a statiscically very high likelyhood that the test data came from a different distribution than the training data. Years of Employment and Years of Education values are dropped to 0.34 and 0.82 indicating that ther is not too much drift for these values.
 
-# Evaluating Large Language Models
+## Evaluating Large Language Models
 
 Red Hat OpenShift AI now offers Language Model Evaluation as a Service (LM-Eval-aaS), in a feature called LM-Eval. LM-Eval provides a unified framework to test generative language models on a vast range of different evaluation tasks.
 
-# Guardrails Orchestration
+## Guardrails Orchestration
 
 The TrustyAI Guardrails Orchestrator service is a tool to invoke detections on text generation inputs and outputs, as well as standalone detections.
 

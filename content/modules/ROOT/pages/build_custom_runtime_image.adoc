@@ -1,3 +1,4 @@
+include::./vars.adoc[]
 # Custom Runtime Images in RHOAI
 
 ## Need for custom runtime image 

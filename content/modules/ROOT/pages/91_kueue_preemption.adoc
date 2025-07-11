@@ -1,0 +1,181 @@
+= **Lab Guide: GitOps for Kueue Preemption Based on GPU Slicing**
+
+This document describes how to configure Kueue for quota allocation and preemption, leveraging the GPU slicing setup established in the previous document. This continues the GitOps approach, ensuring your Kueue configuration is version-controlled and consistently deployable.
+
+== **1. Overlay Configuration for Kueue**
+
+Building upon the GPU-enabled nodes and their slicing, you will define your Kueue components within your Git repository's `overlays` directory, specifically for your lab setup.
+
+*   **Namespace Definitions**:
+    *   Create YAML files for the namespaces that will be used by different teams, such as `team-a` and `team-b`.
+[source,yaml]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-a
+----
+        (Repeat for `team-b`)
+
+*   **ResourceFlavors**:
+    *   Define `ResourceFlavor` objects for both CPU/Memory and GPU resources.
+    *   Crucially, the **GPU `ResourceFlavor` should be configured to tolerate the taints you applied to your GPU nodes** in the previous document.
+[source,yaml]
+----
+# Example for GPU ResourceFlavor tolerating the taint
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: "nvidia-gpu"
+spec:
+  nodeSelector:
+    # Matches the label applied by NFD on GPU nodes
+    # Replace with your actual label if different
+    nvidia.com/gpu.present: "true"
+  tolerations:
+    - key: "restrictedaccess" # The taint key from your MachineSet
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "nvidia.com/gpu" # Standard NVIDIA GPU taint
+      operator: "Exists"
+      effect: "NoSchedule"
+----
+
+*   **ClusterQueues**:
+    *   Define `ClusterQueue` objects for each team (e.g., `team-a-cq` and `team-b-cq`).
+    *   These `ClusterQueue`s should **belong to the same cohort and share a quota**.
+    *   For preemption, **Team A's `ClusterQueue` will have preemption explicitly defined**, allowing it to `borrowWithinCohort` from lower priority queues (like Team B's). This enables Team A to preempt Team B if it has insufficient resources to run.
+[source,yaml]
+----
+# Example for Team A ClusterQueue with preemption
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  cohort: "shared-cohort" # Both teams belong to the same cohort
+  resourceGroups:
+    - flavors:
+        - name: "cpu-flavor"
+          resources:
+            - name: "cpu"
+              guaranteed: "24"
+            - name: "memory"
+              guaranteed: "24Gi"
+        - name: "nvidia-gpu" # Reference the GPU ResourceFlavor
+          resources:
+            - name: "nvidia.com/gpu"
+              guaranteed: "4" # Example GPU quota
+  preemption:
+    reclaimWithinCohort: Any
+    borrowWithinCohort:
+      policy: LowerPriority # Allows preemption of lower priority
+      maxPriorityThreshold: 100
+    withinClusterQueue: Never
+----
+        (Repeat for `team-b-cq` without the preemption section, and adjust resource guarantees as per your shared quota needs. For example, Team B might not have GPU access.)
+
+*   **LocalQueues**:
+    *   Define `LocalQueue` objects within each team's namespace.
+    *   These `LocalQueue`s must be **associated with their respective `ClusterQueue`**. Workloads will be submitted to these local queues.
+[source,yaml]
+----
+# Example for Team A LocalQueue
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: local-queue
+  namespace: team-a
+spec:
+  clusterQueue: team-a-cq
+----
+        (Repeat for `team-b` namespace, associating with `team-b-cq`)
+
+*   **Ray Cluster Workloads (Examples)**:
+    *   Include the `RayCluster` definitions for both Team A and Team B as part of your overlay configuration.
+    *   These definitions will **specify the requested GPU resources and priority class**, linking them to their respective local queues.
+    *   To observe the preemption in action, you can apply Team B's Ray cluster definition first, ensure it's running, and then apply Team A's Ray cluster definition. You should then observe Team B's cluster becoming suspended while Team A's cluster runs due to preemption.
+[source,yaml]
+----
+# Example RayCluster for Team A (higher priority, requesting GPUs)
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: raycluster-prod
+  namespace: team-a
+  labels:
+    kueue.x-k8s.io/queue-name: local-queue
+    kueue.x-k8s.io/priority-class: dev-priority # Example priority class
+spec:
+  rayVersion: "2.8.0" # Or your desired version
+  enableInTreeAutoscaling: false
+  headGroupSpec:
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+    template:
+      spec:
+        containers:
+          - name: ray-head
+            image: quay.io/project-codeflare/ray:2.8.0-py39-gpu
+            ports:
+              - containerPort: 6379
+                name: gcs-server
+              - containerPort: 8265
+                name: dashboard
+              - containerPort: 10001
+                name: client
+            env:
+              - name: NVIDIA_VISIBLE_DEVICES
+                value: all
+              - name: NVIDIA_DRIVER_CAPABILITIES
+                value: all
+            resources:
+              requests:
+                cpu: "2"
+                memory: "8Gi"
+                nvidia.com/gpu: "1" # Requesting one sliced GPU replica
+              limits:
+                cpu: "2"
+                memory: "8Gi"
+                nvidia.com/gpu: "1"
+  workerGroupSpecs:
+    - groupName: small-group
+      replicas: 2
+      minReplicas: 2
+      maxReplicas: 2
+      rayStartParams: {}
+      template:
+        spec:
+          containers:
+            - name: ray-worker
+              image: quay.io/project-codeflare/ray:2.8.0-py39-gpu
+              env:
+                - name: NVIDIA_VISIBLE_DEVICES
+                  value: all
+                - name: NVIDIA_DRIVER_CAPABILITIES
+                  value: all
+              resources:
+                requests:
+                  cpu: "4"
+                  memory: "8Gi"
+                  nvidia.com/gpu: "1" # Requesting one sliced GPU replica
+                limits:
+                  cpu: "4"
+                  memory: "8Gi"
+                  nvidia.com/gpu: "1"
+----
+        (Create a similar `RayCluster` for Team B, typically with lower resource requests and no GPU request if Team B doesn't have GPU access, and submitted to `team-b/local-queue`).
+
+== **2. GitOps Workflow for Kueue Preemption**
+
+This phase continues the GitOps workflow, leveraging the existing Git repository and the `kustomization.yaml` file described in the previous document.
+
+*   **Commit Changes**: Push all these new YAML files (namespaces, Kueue configurations, and example `RayCluster` workloads) to your Git repository.
+*   **GitOps Tool Sync**: Your configured GitOps tool will detect these changes in the `overlays/your-lab` path and apply the manifests to your OpenShift cluster.
+*   **Validation**:
+    *   Monitor the deployed resources, such as `RayClusters`, `ClusterQueues`, and `ResourceFlavors`, to ensure they are created and configured as expected.
+    *   You can use commands like `oc get rayclusters -A` to observe the preemption process.
+    *   For example, after creating Team B's `RayCluster`, it should show a `STATUS` of `ready`.
+    *   Then, after creating Team A's `RayCluster`, you should observe Team B's cluster showing `STATUS` `suspended` and Team A's cluster showing `ready`.
+
+This GitOps approach ensures that your Kueue setup, including quota management and preemption, is **robustly managed through declarative YAML files**, mitigating potential issues like manual deletion warnings for cluster queues.
