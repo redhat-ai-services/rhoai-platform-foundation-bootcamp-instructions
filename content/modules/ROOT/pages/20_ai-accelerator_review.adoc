@@ -30,7 +30,7 @@ image::GitOps_overlay.png[]
 In `scripts/bootstrap.sh` the GitOps resources are installed from the _GITOPS_OVERLAY_ variable and are applied to the cluster:
 
 [start=2]
-2. After GitOps installs, it will then run a https://github.com/redhat-ai-services/ai-accelerator/blob/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/scripts/bootstrap.sh#L80[`kustomize build`] on the `bootstrap/overlays/*` folder. Which ever overlay you select in the bootstrap folder, it will apply RHOAI as well as the `clusters` folder. In this instance, we choose the `rhoai-fast` overlay.
+. After GitOps installs, it will then run a https://github.com/redhat-ai-services/ai-accelerator/blob/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/scripts/bootstrap.sh#L80[`kustomize build`] on the `bootstrap/overlays/*` folder. Which ever overlay you select in the bootstrap folder, it will apply RHOAI as well as the `clusters` folder. In this instance, we choose the `rhoai-fast` overlay.
 
 Looking at the picture below:
 
@@ -44,18 +44,18 @@ image::Bootstrap_overlays2.png[]
 2. & 3. Kustomize looks in the `bootstrap/base` folder for `bootstrap/base/kustomization.yaml` file.
 
 [start=4]
-4. `bootstrap/base/kustomization.yaml` references `components/operators/openshift-gitops/instance/ovelays/rhdp`. This installs the the ArgoCD instance for the GitOps operator. Look at the kustomization files in the folder(s) to see what it installs.
+. `bootstrap/base/kustomization.yaml` references `components/operators/openshift-gitops/instance/ovelays/rhdp`. This installs the the ArgoCD instance for the GitOps operator. Look at the kustomization files in the folder(s) to see what it installs.
 
-5. Kustomize looks in the `clusters/overlays/rhoai-fast` folder for `clusters/overlays/rhoai-fast/kustomization.yaml`.
+. Kustomize looks in the `clusters/overlays/rhoai-fast` folder for `clusters/overlays/rhoai-fast/kustomization.yaml`.
 
-6. `clusters/overlays/rhoai-fast/kustomization.yaml` references two folders: `clusters/base` and `components/argocd/apps/overlays/rhoai-fast`.
+. `clusters/overlays/rhoai-fast/kustomization.yaml` references two folders: `clusters/base` and `components/argocd/apps/overlays/rhoai-fast`.
 
-7. Kustomize looks in the `clusters/base/` folder for `clusters/base/kustomization.yaml`.
+. Kustomize looks in the `clusters/base/` folder for `clusters/base/kustomization.yaml`.
 
-8. & 9. `clusters/base/kustomization.yaml` references `components/argocd/apps/overlays/default` folder.
+. & 9. `clusters/base/kustomization.yaml` references `components/argocd/apps/overlays/default` folder.
 
 [start=10]
-10. `clusters/overlays/rhoai-fast/kustomization.yaml` references `components/argocd/apps/overlays/rhoai-fast`.
+. `clusters/overlays/rhoai-fast/kustomization.yaml` references `components/argocd/apps/overlays/rhoai-fast`.
 
 As you can see, there are a lot of references to different folders. Let's keep digging on what is in the components folder.
 
@@ -63,17 +63,17 @@ As you can see, there are a lot of references to different folders. Let's keep d
 image::Bootstrap_overlays3.3.png[]
 
 [start=11]
-11. From the first picture, looking at number 10: Kustomize will look at the `components/argocd/apps/overlays/rhoai-fast` folder for the `components/argocd/apps/overlays/rhoai-fast/kustomization.yaml` file.
+. From the first picture, looking at number 10: Kustomize will look at the `components/argocd/apps/overlays/rhoai-fast` folder for the `components/argocd/apps/overlays/rhoai-fast/kustomization.yaml` file.
 
-12. `components/argocd/apps/overlays/rhoai-fast/kustomization.yaml` references `components/argo/apps/base` folder and will look for the `components/argo/apps/base/kustomization.yaml` file.
+. `components/argocd/apps/overlays/rhoai-fast/kustomization.yaml` references `components/argo/apps/base` folder and will look for the `components/argo/apps/base/kustomization.yaml` file.
 
-13. `components/argo/apps/base/kustomization.yaml` file will has a list of resources in the blue box. These Argo ApplicationSet resources will be applied.
+. `components/argo/apps/base/kustomization.yaml` file will has a list of resources in the blue box. These Argo ApplicationSet resources will be applied.
 
-14. From the first picture, looking at number 9: Kustomize will look at the `components/argocd/projects/overlays/default` folder for the `components/argocd/projects/overlays/default/kustomization.yaml` file.
+. From the first picture, looking at number 9: Kustomize will look at the `components/argocd/projects/overlays/default` folder for the `components/argocd/projects/overlays/default/kustomization.yaml` file.
 
-15. `components/argocd/projects/overlays/default/kustomization.yaml` references `components/argo/projects/base` folder and will look for the `components/argo/projects/base/kustomization.yaml` file.
+. `components/argocd/projects/overlays/default/kustomization.yaml` references `components/argo/projects/base` folder and will look for the `components/argo/projects/base/kustomization.yaml` file.
 
-16. `components/argo/projects/base/kustomization.yaml` file will has a list of resources in the yellow box. These Argo AppProjects resources will be applied.
+. `components/argo/projects/base/kustomization.yaml` file will has a list of resources in the yellow box. These Argo AppProjects resources will be applied.
 
 ArgoCD ApplicationSet resources follow the App of Apps concept. Where an application manages a group of applications. The ApplicationSet resource has the information of what folder and resources it will be deploying to the cluster (from a repository). ApplicationSet references an AppProject resource.
 

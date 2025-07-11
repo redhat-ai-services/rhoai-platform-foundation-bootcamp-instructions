@@ -1,3 +1,4 @@
+include::./vars.adoc[]
 ## Syncing Fork
 
 Since the ai-accelerator project <https://github.com/redhat-ai-services/ai-accelerator> is an active project and we make changes to it. The forked project needs to be synced to get the latest updates. To do this, go to your forked project (https://github.com/{your_username}/ai-accelerator) and look to see if your branch is behind on commits. 

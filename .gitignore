@@ -100,4 +100,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# antora files
+/content/www
+/utilities
+
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,macos,windows,linux

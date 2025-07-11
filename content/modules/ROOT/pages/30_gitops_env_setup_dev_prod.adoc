@@ -1,3 +1,4 @@
+include::./vars.adoc[]
 # Environment Install and Setup: DEV and PROD Cluster
 
 ## Parasol-insurance-dev cluster

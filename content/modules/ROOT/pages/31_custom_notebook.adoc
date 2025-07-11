@@ -1,3 +1,5 @@
+include::./vars.adoc[]
+
 # Custom Notebook in RHOAI
 
 ## Need for custom notebooks

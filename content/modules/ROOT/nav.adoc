@@ -1,3 +1,5 @@
+
+
 * 1. xref:01_welcome.adoc[Welcome and Introduction]
 
 * 2. xref:05_environment_provisioning.adoc[Environment Provisioning]
@@ -43,5 +45,9 @@
 * Disconnected Environment
     ** 24. xref:disconnected_install.adoc[RHOAI on Disconnected Environment]
 
-* 25. xref:99_useful_tips.adoc[Useful Tips]
-* 26. xref:97_syncing_fork.adoc[Syncing Forked Project]
+* Kueue Preemption
+    ** 27. xref:90_nvidia_gpu_operator.adoc[NVIDIA GPU Operator]
+    ** 28. xref:91_kueue_preemption.adoc[Keue Preemption]
+
+* 29. xref:99_useful_tips.adoc[Useful Tips]
+* 30. xref:97_syncing_fork.adoc[Syncing Forked Project]

@@ -8,7 +8,7 @@ The term 'large' in LLM refers to the number of parameters in the model. These p
 
 There are many different types of LLMs for different use cases. Be sure to choose the appropriate one for you specific use case.
 
-# Explore LLMs
+## Explore LLMs
 
 WARNING: As of Nov 22, 2024 the Node Feature Discovery and NVIDIA Operator appear to be broken on the latest version of OpenShift (4.17), be sure to use 4.16 when building a cluster so that the taints and tolerations work correctly. This may be fixed by Red Hat Engineering soon, so this warning can be removed when the operators are compatible with latest OCP.
 
