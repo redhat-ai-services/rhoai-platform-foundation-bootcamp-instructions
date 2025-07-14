@@ -45,9 +45,10 @@
 * Disconnected Environment
     ** 24. xref:disconnected_install.adoc[RHOAI on Disconnected Environment]
 
-* Kueue Preemption
-    ** 27. xref:90_nvidia_gpu_operator.adoc[NVIDIA GPU Operator]
-    ** 28. xref:91_kueue_preemption.adoc[Keue Preemption]
+* GPU as a Service
+    ** 26. xref:90_gpu_as_a_service_intro.adoc[Introduction]
+    ** 27. xref:91_nvidia_gpu_operator.adoc[NVIDIA GPU Operator]
+    ** 28. xref:92_kueue_preemption.adoc[Kueue]
 
 * 29. xref:99_useful_tips.adoc[Useful Tips]
 * 30. xref:97_syncing_fork.adoc[Syncing Forked Project]
