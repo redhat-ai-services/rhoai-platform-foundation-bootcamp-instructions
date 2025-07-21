@@ -1,153 +1,192 @@
 = **Lab Introdcution: GPU as a Service with GPU slicing and Kueue**
+:icons: font
+:stem: latexmath
 
-This lab explores GPU slicing and its application in workload prioritization. To fully grasp the significance of these topics, a solid understanding of workload sizing is essential. Therefore, we will begin by demonstrating the vRAM calculation required to serve an ``ibm-granite/granite-7b-base`` model. This example will then underscore the importance of slicing GPUs into smaller units.
+This lab explores GPU slicing and its application in workload prioritization. To fully grasp the significance of these topics, a solid understanding of workload sizing is essential. Therefore, we will begin by demonstrating the vRAM calculation required to serve an ``ibm-granite/granite-3.3-2b-instruct`` model. This example will then underscore the importance of slicing GPUs into smaller units.
 
 == **1. Model Seize**
 
-We previously introduced vLLM (Red Hat Inference Server) and its use of https://arxiv.org/abs/2309.06180[PagedAttention], a technique that optimizes GPU memory management, reducing the memory required to serve models. To further enhance GPU utilization and maximize the return on investment (ROI) of this expensive hardware, additional optimizations are crucial. Let's demonstrate this by calculating the memory consumption when serving the ``ibm-granite/granite-7b-base`` model.
+We previously introduced vLLM (Red Hat Inference Server) and its use of https://arxiv.org/abs/2309.06180[PagedAttention], a technique that optimizes GPU memory management, reducing the memory required to serve models. To further enhance GPU utilization and maximize the return on investment (ROI) of this expensive hardware, additional optimizations are crucial. Let's demonstrate this by calculating the memory consumption when serving the ``ibm-granite/granite-3.3-2b-instruct`` model.
 
 * *Model Weights:* This is the memory required to load the model's parameters into the GPU.
 * *KV Cache (Key-Value Cache):* This is dynamic memory used to store the attention keys and values for active sequences (prompts and generated tokens). vLLM's PagedAttention mechanism is designed to optimize this, but it still consumes significant memory, especially with high concurrency and long sequence lengths.
 
 === 1.1. Model Weights
-The ``granite-7b-base`` model is a 7-billion parameter model. The memory usage for model weights depends on the data type (precision) you load it in:
+The `granite-3.3-2b-instruct` model is a 2.53-billion parameter model. The memory usage for model weights depends on the data type (precision) you load it in:
 
-* *FP16 (Half Precision) or BF16 (BFloat16):* Each parameter uses 2 bytes. This is the most common and recommended precision for inference to save memory while maintaining good performance.    
-** 7B parameters * 2 bytes/parameter = *14 GB*
+* *FP16 (Half Precision) or BF16 (BFloat16):* Each parameter uses 2 bytes. This is the most common and recommended precision for inference to save memory while maintaining good performance.
+
+[latexmath]
+++++
+2 \text{B parameters} \cdot 2 \text{ bytes/parameter} = 5 \text{ GB}
+++++
+
 * *INT8 (8-bit Quantization):* Each parameter uses 1 byte.
-** 7B parameters * 1 byte/parameter = *7 GB*
 
-vLLM typically defaults to FP16 (or ``bfloat16`` if supported by the GPU) for optimal balance of speed and memory, so expect around 14 GB for the model weights alone. If you explicitly use ``--dtype float16`` or ``--dtype bfloat16``, this will be the case.
+[latexmath]
+++++
+2 \text{B parameters} \cdot 1 \text{ bytes/parameter} = 2.5 \text{ GB}
+++++
+
+vLLM typically defaults to FP16 (or `bfloat16` if supported by the GPU) for optimal balance of speed and memory, so expect around 16 GB for the model weights alone. If you explicitly use `--dtype float16` or `--dtype bfloat16`, this will be the case.
 
 === 1.2. KV Cache (Key-Value Cache)
-The KV cache memory usage is dynamic and depends on several factors:
+The KV Cache memory usage is dynamic and depends on several factors:
 
-* ``max_model_len`` (or ``max_context_len``): The maximum sequence length (input prompt + generated output) that the model will process. A longer ``max_model_len`` means a larger potential KV cache.
+* `max_model_len` (or `max_context_len`): The maximum sequence length (input prompt + generated output) that the model will process. A longer `max_model_len` means a larger potential KV Cache.
 * *Number of Attention Heads and Hidden Dimensions:* These are model-specific architectural parameters.
-* *Batch Size / Concurrent Requests:* More concurrent requests mean more KV cache entries.
-* ``gpu-memory-utilization``: vLLM's parameter that controls the fraction of total GPU memory to be used for the model executor, including the KV cache. By default, it's 0.9 (90%).
+* *Batch Size / Concurrent Requests:* More concurrent requests mean more KV Cache entries.
+* `gpu-memory-utilization`: vLLM's parameter that controls the fraction of total GPU memory to be used for the model executor, including the KV Cache. By default, it's 0.9 (90%).
 
-=== 1.3. General Estimation for KV Cache (for granite-7b-base)
-While precise calculation requires knowing the exact attention head configuration and desired ``max_model_len``, here's a rough idea:
+=== 1.3. General Estimation for KV Cache (for granite-3.3-2b-instruct)
+While precise calculation requires knowing the exact attention head configuration and desired `max_model_len`, here's a rough idea:
 
-* For a *7B* model, the KV cache can add a significant amount, often a few GBs, and can even exceed the model weights if you're handling many concurrent, long sequences.
-* For example, a *7B* model processing around 2,048 tokens in FP16 might need an additional *~1.95 GB* for the KV cache per batch (this is a rough estimate and depends heavily on batch size and ``max_model_len``).
+* For a *2B* model, the KV Cache can add a significant amount, often a few GBs, and can even exceed the model weights if you're handling many concurrent, long sequences.
+* For example, a *2B* model processing around `2,048` tokens in FP16 might need an additional *~0.16 GB* for the KV Cache per batch (this is a rough estimate and depends heavily on batch size and `max_model_len`).
 
-The most reliable source for a model's architectural parameters is its configuration file, usually named ``config.json``, found alongside the model weights on Hugging Face Hub.
+The most reliable source for a model's architectural parameters is its configuration file, usually named `config.json`, found alongside the model weights on Hugging Face Hub.
 
-For ``ibm-granite/granite-7b-base``, you would look for its ``config.json`` file on its Hugging Face model page: https://huggingface.co/ibm-granite/granite-7b-base/tree/main[granite-7b-base].
+For ``ibm-granite/granite-3.3-2b-instruct``, you would look for its `config.json` file on its Hugging Face model page: https://huggingface.co/ibm-granite/granite-3.3-2b-instruct/tree/main[granite-3.3-2b-instruct].
 
-.granite-7b-base ``config.json``
+.granite-3.3-2b-instruct `config.json`
 [%collapsible]
 ====
 [source,json]
 ----
 {
   "architectures": [
-    "LlamaForCausalLM"
+    "GraniteForCausalLM"
   ],
   "attention_bias": false,
   "attention_dropout": 0.0,
-  "bos_token_id": 1,
-  "eos_token_id": 2,
+  "attention_multiplier": 0.015625,
+  "bos_token_id": 0,
+  "embedding_multiplier": 12.0,
+  "eos_token_id": 0,
   "hidden_act": "silu",
-  "hidden_size": 4096,
+  "hidden_size": 2048,
   "initializer_range": 0.02,
-  "intermediate_size": 11008,
-  "max_position_embeddings": 4096,
-  "model_type": "llama",
+  "intermediate_size": 8192,
+  "logits_scaling": 8.0,
+  "max_position_embeddings": 131072,
+  "mlp_bias": false,
+  "model_type": "granite",
   "num_attention_heads": 32,
-  "num_hidden_layers": 32,
-  "num_key_value_heads": 32,
-  "pretraining_tp": 1,
+  "num_hidden_layers": 40,
+  "num_key_value_heads": 8,
+  "pad_token_id": 0,
+  "residual_multiplier": 0.22,
   "rms_norm_eps": 1e-05,
   "rope_scaling": null,
-  "rope_theta": 10000.0,
-  "tie_word_embeddings": false,
-  "torch_dtype": "float32",
-  "transformers_version": "4.36.2",
+  "rope_theta": 10000000.0,
+  "tie_word_embeddings": true,
+  "torch_dtype": "bfloat16",
+  "transformers_version": "4.49.0",
   "use_cache": true,
-  "vocab_size": 32000
+  "vocab_size": 49159
 }
 ----
 ====
 
-.OPTIONAL: Math behind the exact estimation of the KV Cache size
+[NOTE]
+.Math behind the exact estimation of the KV Cache size
 [%collapsible]
 ====
-Let's break down the estimated memory usage for `ibm-granite/granite-7b-base`.
+Let's break down the estimated memory usage for ``ibm-granite/granite-3.3-2b-instruct``.
 
 [discrete]
 ==== Model Configuration from `config.json`
+Based on the `config.json` for ``ibm-granite/granite-3.3-2b-instruct`` (as found on Hugging Face), here are the relevant parameters:
 
-Based on the `config.json` for `ibm-granite/granite-7b-base` (as found on Hugging Face), here are the relevant parameters:
-
-* `hidden_size`: 4096
-* `num_attention_heads`: 32
-* `num_hidden_layers`: 32
-* `max_position_embeddings`: 4096 (This will be our `max_model_len` for calculation purposes)
+* *Model Parameters:* 2.5 billion (approx. 2B)
+* *Embedding size* (Hidden dimension size, latexmath:[$h$] or latexmath:[$d_{model}$]): 2048
+* *Number of layers* (latexmath:[$L$]): 40
+* *Number of attention heads* (latexmath:[$num_{query\_attention\_heads}$]): 32
+* *Number of KV heads* (latexmath:[$num_{kv\_attention\_heads}$]): 8
+* *Maximum context length* (latexmath:[$max_{context\_length}$]): 128,000 tokens
+* *KV Cache data type size* (latexmath:[$kv_{data\_type\_size}$]): 2 bytes (for FP16)
 
 [discrete]
 ==== a. Calculate `head_dim`
+The dimension of each attention head is `hidden_size` latexmath:[$h$] divided by latexmath:[$num_{query\_attention\_heads}$]:
 
-The dimension of each attention head is `hidden_size` divided by `num_attention_heads`:
-
-`head_dim = hidden_size / num_attention_heads = 4096 / 32 = 128`
+[latexmath]
+++++
+head\_dim = \frac{h}{num_{query\_attention\_heads}} = \frac{2048}{32} = 64 byte
+++++
 
 [discrete]
 ==== b. Calculate KV Cache Size per Token (per layer)
+For each token, in each layer, we store a Key (latexmath:[K]) and a Value (latexmath:[V]) vector. Both latexmath:[K] and latexmath:[V] have latexmath:[head\_dim] dimensions for each attention head.
+The following formula calculates KV Cache memory per token:
 
-For each token, in each layer, we store a Key (K) and a Value (V) vector. Both K and V have `head_dim` dimensions for each attention head.
-
-`KV Cache Size per token (per layer) = 2 * num_attention_heads * head_dim * bytes_per_value`
-`KV Cache Size per token (per layer) = 2 * 32 * 128 * 2 bytes/value`
-`KV Cache Size per token (per layer) = 16384 bytes`
-`KV Cache Size per token (per layer) = 16 KB`
+[latexmath]
+++++
+\begin{align*}
+\text{KV Cache Size per token (per layer)} &= 2 \times L \times num_{kv\_attention\_heads} \times head\_dim \times kv_{data\_type\_size} \\
+\text{KV Cache Size per token (per layer)} &= 2 \times 40 \times 8 \times 64 \times 2 \text{ bytes/token} \\
+\text{KV Cache Size per token (per layer)} &= 81,920 \text{ bytes/token} \\
+\end{align*}
+++++
 
 [discrete]
 ==== c. Total KV Cache Size (for max_model_len, single sequence)
+Finally, to get the total `KV Cache` size for a single request at the maximum context length:
 
-Now, we multiply by the `max_model_len` (from `max_position_embeddings`) and `num_hidden_layers` to get the maximum KV cache size for one full-length sequence:
+[latexmath]
+++++
+\begin{align*}
+\text{Total KV Cache Size (single sequence)} &= \text{KV Cache Size per token (per layer)} \times max_{context\_length} \\
+\text{Total KV Cache Size (single sequence)} &= 81,920 \text{ bytes/token} \times 128,000 \text{ tokens} \\
+\text{Total KV Cache Size (single sequence)} &= 10,485,760,000 \text{ bytes} \\
+\text{Total KV Cache Size (single sequence)} &= 10,000 \text{ MB} \\
+\text{Total KV Cache Size (single sequence)} &= 9.76562 \text{ GB}
+\end{align*}
+++++
 
-`Total KV Cache Size (single sequence) = KV Cache Size per token (per layer) * max_model_len * num_hidden_layers`
-`Total KV Cache Size (single sequence) = 16 KB/token/layer * 4096 tokens * 32 layers`
-`Total KV Cache Size (single sequence) = 16 KB/token/layer * 131072 token-layers`
-`Total KV Cache Size (single sequence) = 2097152 KB`
-`Total KV Cache Size (single sequence) = 2048 MB`
-`Total KV Cache Size (single sequence) = 2 GB`
-
-This *2 GB* is the maximum KV cache memory required for a *single sequence* that utilizes the full 4096 context window.
+This *9.77 GB* is the maximum KV Cache memory required for a *single sequence* that utilizes the full 128,000 context window.
 
 [discrete]
-==== Total Estimated GPU Memory for ibm-granite/granite-7b-base on vLLM (FP16)
+==== Total Estimated GPU Memory for `ibm-granite/granite-3.3-2b-instruct` on vLLM (FP16)
+Combining the model weights (FP16) and a typical KV Cache for vLLM serving:
 
-Combining the model weights (FP16) and a typical KV cache for vLLM serving:
+* *Model Weights (FP16):* latexmath:[\approx 5GB]
+* *KV Cache (max single sequence):* latexmath:[\approx 9.77GB]
 
-* *Model Weights (FP16):* Approximately 14 GB
-* *KV Cache (max single sequence):* Approximately 2 GB
-
-*Total Minimum GPU Memory:* `14 GB (model weights) + 2 GB (max single sequence KV cache) = *16 GB*`
+*Total Minimum GPU Memory:* latexmath:[5GB] (model weights) + latexmath:[9.77GB] (max single sequence KV Cache)  latexmath:[\approx 15GB]
 
 However, this is just for one active sequence. vLLM is designed for high throughput, meaning it handles multiple concurrent requests.
 
-If you have, for example, 5 concurrent sequences each using roughly half of the `max_model_len` on average, the KV cache could easily demand another 5-10 GB (or more, depending on `gpu-memory-utilization`).
+If you have, for example, 5 concurrent sequences each using roughly half of the `max_model_len` on average, the KV Cache could easily demand another 5-10 GB (or more, depending on `gpu-memory-utilization`).
 
-Therefore, for comfortable serving of `ibm-granite/granite-7b-base` on vLLM:
+Therefore, for comfortable serving of `ibm-granite/granite-3.3-2b-instruct` on vLLM:
 
 * A GPU with *16GB vRAM* (like an RTX 4080 or a lower-tier A100) *might* just barely fit if you strictly limit concurrency and context length.
-* *24GB VRAM* (like an RTX 3090, 4090, or a full A100) offers much more headroom for the KV cache to scale with concurrent requests and longer sequence lengths, making it a much more suitable choice for production serving.
-* If you need to fit it on smaller GPUs (e.g., 12GB), you would absolutely need to use *8-bit or 4-bit quantization* for the model weights, which would bring the base model memory down to 7 GB or 3.5 GB respectively, leaving more room for the KV cache.
+* *24GB vRAM* (like an RTX 3090, 4090, or a full A100) offers much more headroom for the KV Cache to scale with concurrent requests and longer sequence lengths, making it a much more suitable choice for production serving.
+* If you need to fit it on smaller GPUs (e.g., 12GB), you would absolutely need to use *8-bit or 4-bit quantization* for the model weights, which would bring the base model memory down to 7 GB or 3.5 GB respectively, leaving more room for the KV Cache.
+
+[discrete]
+==== Understanding the Trade-off: Context Length vs. Concurrency
+The KV Cache size scales linearly with the sequence length (input prompt + generated output). While the `granite-3.3-2b-instruct` model supports a massive 128,000 token context length, serving a single request at this maximum length consumes a significant amount of GPU memory for the KV Cache.
+
+* Model Weights (static): Approximately 5 GB (for FP16).
+
+* KV Cache (dynamic):
+** At max context (128,000 tokens): ~9.77 GB per request.
+** At a common context (e.g., 2,048 tokens): ~0.16 GB per request.
+
+As you can see, the KV Cache for a single max-length request (9.77 GB) is almost twice the size of the model weights (5 GB).
 
 ====
 
 A common way to calculate the needed KV Cache are calculators like the https://huggingface.co/spaces/gaunernst/kv-cache-calculator[gaunernst/kv-cache-calculator] from Hugging Face.
 
 == **2. GPU Optimazation**
-
 Our previous example showed a vRAM requirement of *16 GB* for a single user. Assuming we target *20 GB* of vRAM for a few concurrent queries, an *H100 GPU* with *80 GB* of *vRAM* can certainly accommodate the model. However, this leaves a significant portion of GPU capacity unused, leading to a low return on investment (ROI). To boost GPU utilization, we can leverage the *H100*'s slicing capabilities. The rest of this course will demonstrate how to split the GPU into Multi-Instance GPU (MIG) instances, allowing us to serve up to four models of the same size and configuration concurrently.
-See also the https://github.com/rh-aiservices-bu/gpu-partitioning-guide[GPU partitioning guide] developed by the ``rh-aiservices-bu``.
+See also the https://github.com/rh-aiservices-bu/gpu-partitioning-guide[GPU partitioning guide] developed by the `rh-aiservices-bu`.
 
-.OPTINAL: NVIDIA GPU Slicing/Sharing Options
+[NOTE]
+.NVIDIA GPU Slicing/Sharing Options
 [%collapsible]
 ====
 [discrete]
@@ -185,7 +224,7 @@ Time-slicing is a software-based technique that allows a single GPU to be shared
 [discrete]
 == 2. Multi-Instance GPU (MIG)
 
-MIG is a hardware-based GPU partitioning feature introduced with NVIDIA Ampere architecture GPUs (A100, A30, H100, etc.). It allows a single physical GPU to be partitioned into up to seven fully isolated GPU instances, each with its own dedicated compute cores, memory, and memory bandwidth.
+MIG is a hardware-based GPU partitioning feature introduced with NVIDIA Ampere architecture GPUs (`A100`, `A30`, `H100`, etc.). It allows a single physical GPU to be partitioned into up to seven fully isolated GPU instances, each with its own dedicated compute cores, memory, and memory bandwidth.
 
 *How it works:*
 
@@ -254,7 +293,7 @@ By default, Kubernetes workloads are given exclusive access to their allocated G
 == Summary Comparison:
 
 |===
-| Feature/Option | Time-Slicing | Multi-Instance GPU (MIG) | Multi-Process Service (MPS) | Default (Exclusive Access)
+| *Feature/Option* | *Time-Slicing* | *Multi-Instance GPU (MIG)* | *Multi-Process* *Service (MPS)* | *Default (Exclusive Access)*
 | *Method* | Software-based time sharing | Hardware-level partitioning | Software-based context consolidation | Full GPU allocation
 | *Isolation* | None (shared memory/fault domain) | Hardware-enforced (dedicated memory/compute) | Limited/None (shared memory/fault domain) | Full (dedicated GPU)
 | *Predictable Perf.* | Low (noisy neighbor potential) | High (dedicated resources) | Medium (better than time-slicing, but not isolated) | High (full access)
@@ -267,14 +306,20 @@ By default, Kubernetes workloads are given exclusive access to their allocated G
 The choice of slicing option depends heavily on the specific workloads, the GPU hardware available, and the requirements for isolation, predictability, and cost efficiency.
 ====
 
+[TIP]
+.Combining MIG and Time-Slicing
+==== 
+Sharing a MIG Instance with Time-Slicing: You can configure the NVIDIA GPU Operator to enable time-slicing within a MIG instance. This means that after you've created a MIG instance (which itself provides hardware isolation from other MIG instances on the same physical GPU), you can then allow multiple pods/workloads to time-slice that specific MIG instance.
+====
+
 === 2.1. Muli Instance GPU
 NVIDIA's Multi-Instance GPU (MIG) is a groundbreaking technology that allows you to partition a single physical NVIDIA data center GPU (like the A100 or H100) into multiple smaller, completely isolated, and independent GPU instances.
 
 It's like carving up a very powerful, single-slice cake into several smaller, perfectly formed individual slices. Each slice can then be consumed independently, without affecting the others.
 
 The GPU can't be split random there are supported MIG Profiles which are differ by GPU type. For the example here https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html#h100-mig-profiles[H100 MIG Profiles] could be 3x``MIG 3g.20gb`` and 1x``MIG 1g.10gb``.
-With these configuration 3 Models could be served in parallel and it would be still a `1g.10gb`` slice left which could be used for experiments.
-At the moment the following GPU's are supported; A30, A100, H100, H200 and B200.
+With these configuration 3 Models could be served in parallel and it would be still a ``1g.10gb`` slice left which could be used for experiments.
+At the moment the following GPU's are supported; `A30`, `A100`, `H100`, `H200` and `B200`.
 To change the MIg profiles the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator for OpenShift] needs to be modified.
 
 == **3. Fair resource sharing using Kueue**
