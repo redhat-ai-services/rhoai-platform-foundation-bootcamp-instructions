@@ -1,0 +1,351 @@
+= Lab Guide: Prioritizing Critical Serving Runtimes with MIG Preemption and fair resource sharing between teams
+:icons: font
+
+This lab guide will walk you through setting up your OpenShift cluster to prioritize critical serving runtime instances over lower-priority experimental workloads using NVIDIA Multi-Instance GPU (MIG) slices and Kueue preemption. This ensures that business-critical applications can acquire necessary GPU resources even under heavy load, by preempting less important tasks.
+On top of that it will be shown how to work with different teams levereaging the same infrastructure while ensuring fair resource (in this case GPU) sharing.
+
+== Problem Statement
+
+When the cluster is under heavy load, new or scaling serving runtime instances (which are business-critical) might get stuck waiting for resources behind lower-priority experimental workloads (e.g., ad-hoc training jobs, hyperparameter sweeps) that are already running and consuming MIG-sliced GPUs. This can impact service availability and user experience.
+
+On top of that different teams might require GPU resources. While it's easy to dedicate one GPU to Team A and another one to Team B it's hard to borrow GPU resources between the Teams.
+Assume Team A does not need their GPU resources Team B could levergae the resources of Team A without blocking Team A. This are problems which can be solved by Kueue.
+
+== Solution Overview
+
+The solution leverages NVIDIA Multi-Instance GPU (MIG) slices and Kueue preemption within an OpenShift cluster to address these challenges.
+
+1. *Prioritization of Critical Workloads:* By configuring MIG slices, GPUs can be partitioned into smaller, isolated instances. Kueue's preemption capabilities are then used to ensure that business-critical serving runtime instances are prioritized. This means that if a critical application requires GPU resources, Kueue can preempt (stop or reschedule) lower-priority experimental workloads that are currently using MIG-sliced GPUs, making the necessary resources immediately available for high-priority tasks. This guarantees service availability and a consistent user experience for critical applications even during peak loads.
+
+2. *Fair Resource Sharing Across Teams:* Kueue also facilitates efficient and fair GPU resource sharing among different teams. Instead of rigid GPU assignments, Kueue allows for dynamic allocation and borrowing of GPU resources. If one team's allocated GPUs are idle, Kueue can temporarily assign these resources to another team that has an immediate need, without permanently reassigning ownership or blocking the original team's future access. This optimizes GPU utilization across the entire cluster, preventing resource bottlenecks and improving overall operational efficiency for all teams.
+
+== Lab Steps
+
+=== Step 1: Create ClusterKueue
+
+As stated in the official <<documentation>>:
+
+[quote, "Kueue", "Documentation, Version May 15, 2025"]
+____
+If your cluster has homogeneous resources, or if you don’t need to manage quotas for the different flavors of a resource separately, you can create a ResourceFlavor without any labels or taints. Such ResourceFlavor is called an empty ResourceFlavor and its definition looks like the following:
+____
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+----
+
+[quote, "Kueue", "Documentation, Version May 15, 2025"]
+____
+Cohorts give you the ability to organize your Quotas. ClusterQueues within the same Cohort (or same CohortTree for Hierarchical Cohorts) can share resources with each other.
+____
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1alpha1
+kind: Cohort
+metadata:
+  name: "team-a-b-cohort"
+----
+
+[quote, "Kueue", "Documentation, Version May 15, 2025"]
+____
+A ClusterQueue is a cluster-scoped object that governs a pool of resources such as pods, CPU, memory, and hardware accelerators. A ClusterQueue defines:
+
+The quotas for the resource flavors that the ClusterQueue manages, with usage limits and order of consumption.
+Fair Sharing rules across the multiple ClusterQueues in the cluster.
+Only batch administrators should create ClusterQueue objects.
+____
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a
+spec:
+  cohort: "team-a-b-cohort"
+  namespaceSelector: {}
+  resourceGroups:
+  - coveredResources: ["nvidia.com/mig-3g.20gb"]
+    flavors:
+    - name: "default-flavor"
+      resources:
+      - name: "nvidia.com/mig-3g.20gb"
+        nominalQuota: 1
+      - name: "nvidia.com/mig-2g.10g"
+        nominalQuota: 0
+      - name: "nvidia.com/mig-1g.5g"
+        nominalQuota: 1
+----
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-b
+spec:
+  cohort: "team-a-b-cohort"
+  namespaceSelector: {}
+  resourceGroups:
+  - coveredResources: ["nvidia.com/mig-2g.10g","nvidia.com/mig-1g.5g"]
+    flavors:
+    - name: "default-flavor"
+      resources:
+      - name: "nvidia.com/mig-3g.20gb"
+        nominalQuota: 0
+      - name: "nvidia.com/mig-2g.10g"
+        nominalQuota: 1
+      - name: "nvidia.com/mig-1g.5g"
+        nominalQuota: 1
+----
+
+[quote, "Kueue", "Documentation, Version May 15, 2025"]
+____
+A LocalQueue is a namespaced object that groups closely related Workloads that belong to a single namespace. A namespace is typically assigned to a tenant (team or user) of the organization. A LocalQueue points to one ClusterQueue from which resources are allocated to run its Workloads.
+____
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  namespace: team-a-01
+  name: team-a
+spec:
+  clusterQueue: team-a
+----
+
+[source,yaml]
+----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  namespace: team-b-01
+  name: team-b
+spec:
+  clusterQueue: team-b
+----
+
+=== Step 2: Define PriorityClasses
+
+Now, we'll define two PriorityClass objects: one for critical workloads and one for experimental workloads. Higher value indicates higher priority.
+
+Create a PriorityClass for critical workloads (critical-priority.yaml):
+
+[source,yaml]
+----
+apiVersion: scheduling.k8s.io/v1 
+kind: PriorityClass 
+metadata: 
+  name: inference-server 
+value: 1000000 # High value for critical workloads globalDefault: false description: "This PriorityClass should be used for critical serving runtimes."
+----
+Apply the PriorityClass: 
+[source,bash]
+----
+oc apply -f critical-priority.yaml
+----
+Create a PriorityClass for experimental workloads 
+(experimental-priority.yaml): 
+[source,yaml]
+----
+apiVersion: scheduling.k8s.io/v1 
+kind: PriorityClass 
+metadata: 
+  name: experimentals 
+value: 10000 # Lower value for experimental workloads globalDefault: false description: "This PriorityClass should be used for experimental jobs like hyperparameter sweeps."
+----
+Apply the PriorityClass:
+[source,bash]
+----
+oc apply -f experimental-priority.yaml
+----
+Verify the PriorityClass objects are created:
+[source,bash]
+----
+oc get priorityclass
+----
+You should see both critical-workload and experimental-workload listed.
+
+
+
+=== Step 4: Deploy an Experimental Workload (Lower Priority)
+
+We will now deploy a simple experimental workload that requests a MIG slice. This pod will simulate a long-running, lower-priority job.
+
+Create a deployment for the experimental workload (experimental-deployment.yaml):
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: experimental-mig-job
+  labels:
+    app: experimental-mig
+    kueue.x-k8s.io/queue-name: team-a
+    kueue.x-k8s.io/priority-class: experimentals
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: experimental-mig
+  template:
+    metadata:
+      labels:
+        app: experimental-mig
+    spec:
+      priorityClassName: experimental-workload # Assign lower priority
+      containers:
+        - name: mig-consumer
+          image: registry.access.redhat.com/ubi8/ubi-minimal # A lightweight image
+          command: ["/bin/bash", "-c", "echo 'Running experimental job...'; sleep 3600"] # Simulate long-running job
+          resources:
+            limits:
+              nvidia.com/mig-1g.5gb: 1 # Request one MIG slice (adjust as per your actual MIG profile)
+            requests:
+              nvidia.com/mig-1g.5gb: 1
+----
+Apply the deployment:
+[source,bash]
+----
+oc apply -f experimental-deployment.yaml
+----
+Verify the experimental pod is running:
+[source,bash]
+----
+oc get pods -l app=experimental-mig
+----
+Wait until the pod shows a Running status.
+
+=== Step 5: Deploy a Critical Workload (Higher Priority)
+
+Now, we'll deploy a critical serving runtime workload that also requests a MIG slice. Since resources are likely consumed by the experimental job, this higher-priority pod should trigger preemption.
+
+Create a deployment for the critical workload (critical-deployment.yaml):
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: critical-serving-runtime
+  labels:
+    app: critical-serving
+    kueue.x-k8s.io/queue-name: inference-server
+    kueue.x-k8s.io/priority-class: inference-server 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: critical-serving
+  template:
+    metadata:
+      labels:
+        app: critical-serving
+    spec:
+      containers:
+        - name: mig-serving
+          image: registry.access.redhat.com/ubi8/ubi-minimal # A lightweight image
+          command: ["/bin/bash", "-c", "echo 'Running critical serving runtime...'; sleep 3600"] # Simulate long-running service
+          resources:
+            limits:
+              nvidia.com/mig-1g.5gb: 1 # Request one MIG slice (adjust as per your actual MIG profile)
+            requests:
+              nvidia.com/mig-1g.5gb: 1
+----
+Apply the deployment:
+[source,bash]
+----
+oc apply -f critical-deployment.yaml
+----
+
+=== Step 6: Verify Preemption
+
+Observe the behavior of the pods to confirm that the critical workload preempted the experimental one.
+
+Monitor the pods in your namespace:
+[source,bash]
+----
+oc get pods -w
+----
+You should see the experimental-mig-job pod transition to a Terminating or Evicted state, and then the critical-serving-runtime pod should move to Running.
+
+Check the events for the experimental pod to see the preemption message:
+[source,bash]
+----
+oc describe pod <name-of-experimental-pod>
+----
+Look for events indicating Preempting or Evicted due to a higher priority pod.
+
+Check the events for the critical pod to see it being scheduled:
+[source,bash]
+----
+oc describe pod <name-of-critical-pod>
+----
+You should see scheduling events indicating it found resources after preemption.
+
+=== Step 7: Clean Up
+
+To clean up the resources created during this lab:
+
+Delete the deployments:
+[source,bash]
+----
+oc delete deployment experimental-mig-job 
+oc delete deployment critical-serving-runtime
+----
+Delete the PriorityClass objects:
+[source,bash]
+----
+oc delete priorityclass critical-workload 
+oc delete priorityclass experimental-workload
+----
+
+== Additional Informations
+
+[NOTE]
+.MultiKueue
+[%collapsible]
+====
+MultiKueue addresses several critical challenges, especially for organizations with large-scale batch, AI/ML, and HPC workloads:
+
+1. *Global Resource Optimization / Capacity Spreading:*
+
+* *Problem:* GPUs (like H100s) are expensive and often scarce. A single cluster might not have enough capacity for all jobs, or capacity might be fragmented across different clusters/regions/clouds. Users might submit jobs to a cluster, only for them to sit pending indefinitely due to resource constraints.
+* *Solution:* MultiKueue allows jobs to "find" available resources across a fleet of clusters. Instead of being stuck in one cluster, a job can be dispatched to any worker cluster that has the necessary GPUs or other resources, maximizing overall cluster utilization and reducing job wait times. This is particularly valuable for bursty or unpredictable workloads.
+* *Example:* A large AI training job requiring 16 H100s might not fit in Cluster A, but MultiKueue can automatically dispatch it to Cluster B or C where those resources are available, even if Cluster B is in a different region or cloud.
+
+2. *Hybrid Cloud / Multi-Cloud Strategy:*
+
+* *Problem:* Organizations often operate hybrid environments (on-prem and cloud) or use multiple cloud providers to leverage specific services, avoid vendor lock-in, or meet data residency requirements. Managing batch workloads across these disparate environments is complex.
+* *Solution:* MultiKueue provides a unified control plane for batch job submission and management across these diverse environments. It can intelligently dispatch jobs to on-prem clusters (for base loads) or burst to cloud clusters (for peak demands).
+* *Example:* A company runs its core batch processing on-prem but uses MultiKueue to automatically burst highly parallel, short-lived analytics jobs to a public cloud cluster when on-prem resources are busy.
+
+3. *Disaster Recovery and High Availability:*
+
+* *Problem:* If a single cluster goes down or experiences a major outage, all pending and running batch jobs are affected.
+* Solution: While not a full-fledged disaster recovery solution for stateful applications, MultiKueue can reroute new job submissions or re-queue affected jobs to healthy clusters, improving the overall resilience of batch processing.
+
+4. *Data Residency and Compliance:*
+
+* *Problem:* Certain workloads or data might need to reside and be processed only within specific geographical regions or adhere to particular regulatory compliance rules.
+* *Solution:* MultiKueue allows you to configure policies and label worker clusters, ensuring that jobs with specific data residency requirements are only dispatched to clusters meeting those criteria.
+
+5. *Simplified User Experience for Cluster-Agnostic Workloads:*
+
+* *Problem:* Users (e.g., data scientists) often don't want to worry about which specific cluster their job runs on. They just want their job to run as soon as possible and efficiently.
+* *Solution:* MultiKueue abstracts away the underlying cluster topology. Users submit jobs to the manager cluster's queue, and MultiKueue handles the optimal dispatching, simplifying the user experience and increasing developer productivity.
+====
+
+
+== Conclusion
+You have successfully demonstrated how to use Kubernetes PriorityClass and NVIDIA GPU Operator's preemption capabilities to ensure critical serving runtimes can acquire necessary MIG-sliced GPU resources by preempting lower-priority experimental workloads. This mechanism is crucial for maintaining service availability and responsiveness in resource-constrained environments.
+
+[bibliography]
+== References
+
+* [[[documentation]]] Kueue. _Documentation_. Version May 15, 2025. Available from: https://kueue.sigs.k8s.io/docs/overview/
