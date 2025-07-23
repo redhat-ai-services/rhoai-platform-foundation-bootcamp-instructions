@@ -51,5 +51,8 @@
     ** 28. xref:92_nvidia_gpu_operator.adoc[NVIDIA GPU Operator]
     ** 29. xref:93_kueue_fair_sharing.adoc[Kueue]
 
+* Agentic AI with Llama Stack
+    ** 30. xref:94_agentic_ai_llama_stack.adoc[Introduction]
+
 * 29. xref:99_useful_tips.adoc[Useful Tips]
 * 30. xref:97_syncing_fork.adoc[Syncing Forked Project]

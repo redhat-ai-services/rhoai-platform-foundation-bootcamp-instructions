@@ -1,0 +1,8 @@
+= *Lab Guide: Agentic AI with Llama Stack*
+:icons: font
+
+
+== *1. Llama Stack Server*
+
+The Llama Stack is a comprehensive, open-source framework initiated by Meta, designed to standardize and simplify the end-to-end lifecycle of generative AI applications. It provides a unified set of tools and APIs that address the entire development workflow, from initial model interaction to the deployment of complex, agentic systems.
+The primary goal of the Llama Stack is to reduce the inherent complexity in building and deploying advanced AI systems. By providing a unified interface and a standardized set of tools, it allows developers to focus on creating innovative AI solutions rather than managing disparate infrastructure and integration challenges. This approach is designed to accelerate the adoption and advancement of generative AI by providing a robust and accessible platform.
