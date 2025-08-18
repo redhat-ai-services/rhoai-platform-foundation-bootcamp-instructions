@@ -15,7 +15,122 @@ This lab will guide you through setting up this environment and exploring the co
 
 Here are some exercises to help you get started with Llama Stack.
 
-=== *2.1. Setting Up Llama Stack Resources*
+=== *2.1. Deploy the OpenShift MCP Server*
+
+The OpenShift Model Context Protocol (MCP) server acts as a bridge, allowing the Llama Stack agent to interact with the OpenShift cluster to answer questions about its state.
+
+1.  First, create a new namespace for the MCP server:
++
+[source,yaml]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ocp-mcp
+----
++
+Save this file as `ocp-mcp-namespace.yaml` and apply it using `oc apply -f ocp-mcp-namespace.yaml`.
+
+2.  Next, create a `ServiceAccount` and the necessary `RoleBinding` and `ClusterRoleBinding` to grant it permissions to read resources from the cluster.
++
+[source,yaml]
+----
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ocp-mcp
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ocp-mcp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: ocp-mcp
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-admin-ocp-mcp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: ocp-mcp
+  namespace: ocp-mcp
+----
++
+Save this file as `ocp-mcp-sa.yaml` and apply it using `oc apply -f ocp-mcp-sa.yaml`.
+
+3.  Now, create the `Deployment` for the MCP server.
++
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ocp-mcp-server
+  name: ocp-mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocp-mcp-server
+  template:
+    metadata:
+      labels:
+        app: ocp-mcp-server
+        deployment: ocp-mcp-server
+    spec:
+      containers:
+      - args:
+        - --sse-port
+        - "8000"
+        command:
+        - ./kubernetes-mcp-server
+        image: quay.io/eformat/kubernetes-mcp-server:latest
+        imagePullPolicy: Always
+        name: ocp-mcp-server
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        resources: {}
+      serviceAccountName: ocp-mcp
+----
++
+Save this file as `ocp-mcp-deployment.yaml` and apply it using `oc apply -f ocp-mcp-deployment.yaml`.
+
+4.  Finally, create the `Service` to expose the MCP server within the cluster.
++
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ocp-mcp-server
+  name: ocp-mcp-server
+spec:
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: ocp-mcp-server
+    deployment: ocp-mcp-server
+----
++
+Save this file as `ocp-mcp-service.yaml` and apply it using `oc apply -f ocp-mcp-service.yaml`.
+
+=== *2.2. Setting Up Llama Stack Resources*
 
 1.  First, create a new namespace for the Llama Stack components:
 +
