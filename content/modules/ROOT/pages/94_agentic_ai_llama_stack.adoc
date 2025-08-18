@@ -10,62 +10,12 @@ This lab will guide you through setting up this environment and exploring the co
 *   You have access to a Red Hat OpenShift AI environment.
 *   You have access to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for models.
 *   The LlamaStack operator is enabled and running in the cluster.
-*   An instance of `LlamaStackDistribution` and a corresponding `ConfigMap` are created.
-*   You have a running Data Science workbench, preferably with a GPU, using a standard notebook image.
 
-== *2. Lab Steps*
-
-=== *2.1. Launch a Workbench and Clone the Demo Repository*
-
-1.  If you do not already have one, create and start a new workbench in your RHOAI environment.
-2.  Once the workbench is running, open a Terminal window from the launcher.
-3.  In the terminal, clone the official Llama Stack demos repository from GitHub:
-+
-[source,bash]
-----
-git clone https://github.com/opendatahub-io/llama-stack-demos.git
-----
-
-=== *2.2. Install Dependencies*
-
-1.  Navigate into the cloned directory:
-+
-[source,bash]
-----
-cd llama-stack-demos
-----
-2.  It is highly recommended to create and use a Python virtual environment to avoid conflicts with the base notebook packages.
-+
-[source,bash]
-----
-python -m venv .venv
-source .venv/bin/activate
-----
-3.  Install the required Python packages using the provided `requirements.txt` file.
-+
-[source,bash]
-----
-pip install -r requirements.txt
-----
-
-=== *2.3. Explore the LlamaStack Notebooks*
-
-The repository is structured to guide you from basic concepts to more advanced agentic AI systems.
-
-1.  Using the file browser on the left, navigate into the `llama-stack-demos/notebooks` directory.
-2.  Begin by opening and running the introductory notebooks. These will cover the fundamentals of:
-    *   Building simple question-and-answer systems.
-    *   Creating complex, tool-using agents that can interact with external services and APIs.
-    *   Understanding the Model Context Protocol (MCP) for standardized tool integration.
-3.  Proceed to the more advanced notebooks, which demonstrate how to build a complete Retrieval-Augmented Generation (RAG) solution using a vector database like Milvus.
-
-Follow the detailed instructions within each notebook to execute the code and understand the concepts.
-
-== *3. Exercises*
+== *2. Let's get started*
 
 Here are some exercises to help you get started with Llama Stack.
 
-=== *3.1. Create the LlamaStackDistribution and ConfigMap*
+=== *2.1. Create the LlamaStackDistribution and ConfigMap*
 
 1.  First, create a new namespace for the Llama Stack components:
 +
@@ -76,7 +26,7 @@ kind: Namespace
 metadata:
   name: llama-stack
 ----
-+
++  
 Save this file as `namespace.yaml` and apply it using `oc apply -f namespace.yaml`.
 
 2.  Next, create a secret to store your API keys. Create a file named `creds.yaml` with the following content, replacing `Y2hhbmdfbWU=` with your base64 encoded API keys:
@@ -114,7 +64,7 @@ data:
   apiKey: Y2hhbmdfbWU=
 type: Opaque
 ----
-+
++  
 Apply the secret using `oc apply -f creds.yaml`.
 
 3.  Now, create the `ConfigMap` for the Llama Stack. Save the following as `llama-stack-config.yaml`:
@@ -196,7 +146,7 @@ data:
     server:
       port: 8321
 ----
-+
++  
 Apply the `ConfigMap` using `oc apply -f llama-stack-config.yaml`.
 
 4.  Finally, create the `LlamaStackDistribution`. Save the following as `llama-stack-distro.yaml`:
@@ -243,10 +193,10 @@ spec:
     userConfig:
       configMapName: llama-stack-config
 ----
-+
++  
 Apply the distribution using `oc apply -f llama-stack-distro.yaml`.
 
-=== *3.2. Explore the Llama Stack APIs*
+=== *2.2. Explore the Llama Stack APIs*
 
 Once the `LlamaStackDistribution` is running, you can interact with its APIs.
 
@@ -288,7 +238,7 @@ curl -k -X POST https://<your-llama-stack-route>/v1/agents \
 }
 ----
 
-== *4. Clean Up*
+== *3. Clean Up*
 
 
 When you have finished the lab, remember to shut down your workbench from the RHOAI dashboard to release the allocated compute resources.
