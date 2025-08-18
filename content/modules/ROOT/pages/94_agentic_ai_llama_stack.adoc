@@ -15,7 +15,7 @@ This lab will guide you through setting up this environment and exploring the co
 
 Here are some exercises to help you get started with Llama Stack.
 
-=== *2.1. Create the LlamaStackDistribution and ConfigMap*
+=== *2.1. Setting Up Llama Stack Resources*
 
 1.  First, create a new namespace for the Llama Stack components:
 +
@@ -29,7 +29,7 @@ metadata:
 +  
 Save this file as `namespace.yaml` and apply it using `oc apply -f namespace.yaml`.
 
-2.  Next, create a secret to store your API keys. Create a file named `creds.yaml` with the following content, replacing `Y2hhbmdfbWU=` with your base64 encoded API keys:
+2.  Next, create a secret to store your API keys. This file defines three separate secrets: two for the different language models (Llama 3 and Llama 4) and one for the Tavily search tool.
 +
 [source,yaml]
 ----
@@ -42,6 +42,15 @@ data:
   apiKey: Y2hhbmdfbWU=
 type: Opaque
 
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: llama-4-scout-17b-16e-w4a16
+  namespace: llama-stack
+data:
+  apiKey: Y2hhbmdfbWU=
+type: Opaque
 
 ---
 kind: Secret
@@ -53,21 +62,11 @@ data:
   tavily-search-api-key: Y2hhbmdfbWU=
 type: Opaque
 
-
----
-kind: Secret
-apiVersion: v1
-metadata:
-  name: llama-4-scout-17b-16e-w4a16
-  namespace: llama-stack
-data:
-  apiKey: Y2hhbmdfbWU=
-type: Opaque
 ----
 +  
 Apply the secret using `oc apply -f creds.yaml`.
 
-3.  Now, create the `ConfigMap` for the Llama Stack. Save the following as `llama-stack-config.yaml`:
+3.  Now, create the `ConfigMap` for the Llama Stack. Most of the key configuration for the LlamaStack server is done in the `run.yaml` file, which is encapsulated within this `ConfigMap`. For this lab, we will be focusing on a few of its APIs, such as `inference` and `tool_runtime`. Save the following as `llama-stack-config.yaml`:
 +
 [source,yaml]
 ----
@@ -196,54 +195,100 @@ spec:
 +  
 Apply the distribution using `oc apply -f llama-stack-distro.yaml`.
 
-=== *2.2. Explore the Llama Stack APIs*
-
-Once the `LlamaStackDistribution` is running, you can interact with its APIs.
-
-1.  Find the route to the Llama Stack service:
+5.  Validate that the Llama Stack server is running correctly. Check the logs of the pod to ensure that it has successfully connected to the models and the OpenShift MCP server.
 +
 [source,bash]
 ----
-oc get route llamastack-with-config -n llama-stack -o jsonpath='{.spec.host}'
+oc logs -n llama-stack $(oc get pods -n llama-stack -l app=llamastack-with-config -o name | head -n 1)
 ----
-
-2.  Use the route from the previous step to send requests to the inference API. Here's an example using `curl`:
 +
-[source,bash]
-----
-curl -k https://<your-llama-stack-route>/v1/chat/completions \
--H "Content-Type: application/json" \
--d 
-{
-  "model": "llama-3-2-3b",
-  "messages": [
-    {
-      "role": "user",
-      "content": "What is the capital of France?"
-    }
-  ]
-}
-----
+Look for messages indicating successful connections and that the server is ready to accept requests.
 
-3.  You can also interact with the agent API. Here's an example of creating a new agent:
+== *3. Interact with Llama Stack using the Python Client*
+
+Now that the Llama Stack server is running, you can interact with it from a Data Science workbench using the `llama-stack` Python client.
+
+1.  In your workbench, open a new notebook.
+
+2.  First, install the `llama-stack` client library:
 +
-[source,bash]
+[source,python]
 ----
-curl -k -X POST https://<your-llama-stack-route>/v1/agents \
--H "Content-Type: application/json" \
--d 
-{
-  "model": "llama-3-2-3b",
-  "tools": ["builtin::websearch"]
-}
+!pip install -qq llama-stack
 ----
 
-== *3. Clean Up*
+3.  Import the necessary libraries:
++
+[source,python]
+----
+import os
+from llama_stack_client import LlamaStackClient, Agent, AgentEventLogger
+from rich.pretty import pprint
+----
+
+4.  Define the connection details for the Llama Stack server. By default, this will use the internal Kubernetes service name.
++
+[source,python]
+----
+LLAMA_STACK_SERVER_HOST = os.getenv("LLAMA_STACK_SERVER_HOST", "llamastack-with-config-service.llama-stack.svc.cluster.local")
+LLAMA_STACK_SERVER_PORT = os.getenv("LLAMA_STACK_SERVER_PORT", "8321")
+----
+
+5.  Instantiate the client and create an agent. This agent is configured to use the `llama-3-2-3b` model and has access to both the web search and OpenShift tools.
++
+[source,python]
+----
+client = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
+
+agent = Agent(
+    client,
+    model="llama-3-2-3b",
+    instructions="You are a helpful assistant",
+    tools=[
+        "builtin::websearch",
+        "mcp::openshift"
+    ],
+    max_infer_iters=5,
+    sampling_params={
+        "strategy": {"type": "top_p", "temperature": 0.7, "top_p": 0.95},
+        "max_tokens": 2048,
+    },
+)
+session_id = agent.create_session("monitored_session")
+----
+
+6.  Now you can ask the agent questions. This first example uses the web search tool to find the current OpenShift release.
++
+[source,python]
+----
+response = agent.create_turn(
+    messages=[{"role": "user", "content": "Whats the current openshift release?"}],
+    session_id=session_id,
+)
+
+for log in AgentEventLogger().log(response):
+    log.print()
+----
+
+7.  This second example uses the OpenShift tool to query for namespaces within the cluster.
++
+[source,python]
+----
+response = agent.create_turn(
+    messages=[{"role": "user", "content": "What namespaces are existing inside the cluster?"}],
+    session_id=session_id,
+)
+
+for log in AgentEventLogger().log(response):
+    log.print()
+----
+
+== *4. Clean Up*
 
 
 When you have finished the lab, remember to shut down your workbench from the RHOAI dashboard to release the allocated compute resources.
 
-== *4. References*
+== *5. References*
 
-*   **Llama Stack Demos GitHub Repository**: [https://github.com/opendatahub-io/llama-stack-demos](https://github.com/opendatahub-io/llama-stack-demos)
-*   **Red Hat Developer Article: Build AI agents with Red Hat OpenShift AI and Llama Stack**: [https://developers.redhat.com/articles/2024/05/22/build-ai-agents-red-hat-openshift-ai-llama-stack](https://developers.redhat.com/articles/2024/05/22/build-ai-agents-red-hat-openshift-ai-llama-stack)
+
+* *Llama Stack Demos GitHub Repository*: link:https://github.com/opendatahub-io/llama-stack-demos[Llama Stack Demos]
