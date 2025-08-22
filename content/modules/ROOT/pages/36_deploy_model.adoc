@@ -2,7 +2,7 @@ In this section we will serve our model in our RHOAI instance using Gitops. We w
 
 To do this we would need a data connection to the S3 instance where our model is stored, and we would need to create the Custom serving runtime and an Inference server 
 
-## Custom Serving runtime
+## Custom Serving runtime [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 RHOAI supports the ability to add your own serving runtime. But it does not support the runtimes themselves. Therefore, it is up to you to configure, adjust and maintain your custom runtimes.
 

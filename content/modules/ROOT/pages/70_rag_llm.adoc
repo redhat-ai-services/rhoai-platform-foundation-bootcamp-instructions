@@ -511,8 +511,6 @@ spec:
 ----
 ====
 
-WARNING: If the vllm pod is in the "Pending" state, we'll need to free up the GPU node. In the `ai-example-single-model-serving` project, delete the `granite-predictor` pod or reduce the `granite-predictor-deployment` pod count to 0. This will free up the GPU node and allow the `rag-llm-demo` project to use it. Note: Since ArgoCD is still managing the components, ArgoCD will automatically overwrite the changes and try to bring it back up. The vllm pod should have taken over the GPU node (and will try to start) whilst the granite-predictor should now be in the "Pending" state. (They both can run at the same time, but this will speed up the deployment of the vllm pod).
-
 NOTE: We are greatly reducing the amount of resources the LLM uses.
 
 ### Run through the Notebooks to test the LLM with RAG

@@ -71,7 +71,7 @@ We can also run a `oc describe`` on the node:
 [.bordershadow]
 image::node_describe_gpu.png[]
 
-### Test Model Notebooks
+### Test Model Notebooks [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 After exploring the GPU Node details, open RHOAI and launch new workbench and run the tests for the LLMs. These can be found in the `https://github.com/redhat-ai-services/ai-accelerator[]` 
 
 - Fraud detection model - tenants/ai-example/multi-model-serving/test

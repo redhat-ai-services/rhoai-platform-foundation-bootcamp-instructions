@@ -1,10 +1,10 @@
-# Setup the pipelines server
+# Setup the pipelines server [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 In this section, you will learn how to setup the pipelines server in the Parasol Insurance tenant using ArgoCD.
 
 The data science pipelines server is a component of RHOAI that allows you to create, run, and monitor machine learning pipelines.
 
-## Setup the pipelines server (DSPA).
+## Setup the pipelines server (DSPA). [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 . Create a `data-science-pipelines` directory in the `parasol-insurance` tenant directory.
 

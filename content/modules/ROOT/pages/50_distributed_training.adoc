@@ -79,7 +79,7 @@ image::distributed-training-dsc-added.png[dsc codeflare, ray, kueue managed]
 
 
 
-## Create the Kueue configuration with GitOps
+## Create the Kueue configuration with GitOps [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 . In the `parasol-insurance` tenant directory, create a new directory called `kueue`, and create the `base` and `overlays` directories inside it.
 

@@ -145,7 +145,7 @@ Steps for checking the health of your environment:
 
 [NOTE]
 ====
-If the granite inference service fails to spin up, delete the deployment and Argo should redeploy it.
+If any deployments fail to spin up, delete the deployment and Argo should redeploy it.
 
 [SOURCE]
 ----

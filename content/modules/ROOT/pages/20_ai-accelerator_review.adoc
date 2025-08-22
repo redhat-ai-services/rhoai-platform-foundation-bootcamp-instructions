@@ -1,13 +1,13 @@
 # AI Accelerator Project
 
-The AI Accelerator project is an automated way to deploy RHOAI, relevent operators, and examples to a cluster.
+The AI Accelerator project is an automated way to deploy RHOAI and relevent operators to a cluster. After one has used it to setup RHOAI on a cluster, further examples can be deployed on top using the separate https://github.com/redhat-ai-services/ai-accelerator-examples[ai-accelerator-examples] git repository.
 
 Navigate to the ai-accelerator github project: https://github.com/redhat-ai-services/ai-accelerator
 
-The ai-accelerator project installs Open Shift GitOps (ArgoCD) first, then uses ArgoCD to install RHOAI and the related operators. It also deploys examples such as inference services, a workbench, and pipelines.
+The ai-accelerator project installs Open Shift GitOps (ArgoCD) first, then uses ArgoCD to install RHOAI and the related operators.
 
 * The list of operators it can install are in the https://github.com/redhat-ai-services/ai-accelerator/tree/main/components/operators[operators] folder.
-*  Examples of model serving, workbench, and pipelines can be found in the https://github.com/redhat-ai-services/ai-accelerator/tree/main/tenants[tenants] folder.
+* Some examples of model serving, workbench, and pipelines can be found in the https://github.com/redhat-ai-services/ai-accelerator-examples[ai-accelerator-examples] git repository.
 
 ## Kustomize
 
@@ -82,12 +82,13 @@ ArgoCD AppProject resources allows the grouping of projects logically and for sc
 Let's look at the ApplicationSet:
 
 [.bordershadow]
-image::ApplicationSet_tenants.png[]
+image::ApplicationSet_cluster_operators.png[]
 
-As you can see from the file, there are incomplete values, such as line 15, 37, and 38. Kustomize can replace these values with the _**patch**_ feature. 
+As you can see from the file, there are incomplete values, such as line 13. Kustomize can replace these values with the _**patch**_ feature. 
 Let's take a look at the `components/argocd/apps/overlays/rhoai-fast/kustomization.yaml` file to learn how the patching works.
 
-### Kustomize Patches
+### Kustomize Patches [DEPRECATED Needs refactoring for removal of tenants folder]
+
 
 [.bordershadow]
 image::Kustomization_patch.png[]
