@@ -309,7 +309,7 @@ image::minio_s3_bucket.png[]
 
 . Validate the resulting script: The script should look like this: https://github.com/redhat-ai-services/ai-accelerator-bootcamp/blob/main/source_code/40_pipelines/train-car-rekon.py[train-car-rekon.py]
 
-## Create a pipeline to train a model
+## Create a pipeline to train a model [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 . Create a `model-training-pipeline` directory in the `parasol-insurance` tenants directory.
 
