@@ -1,0 +1,1 @@
+= Lab Exercise: Exposing a new model in 3Scale
