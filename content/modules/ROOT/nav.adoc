@@ -51,5 +51,11 @@
     ** 28. xref:92_nvidia_gpu_operator.adoc[NVIDIA GPU Operator]
     ** 29. xref:93_kueue_fair_sharing.adoc[Kueue]
 
+* Model-as-a-Service
+    ** 30. xref:100_maas_intro.adoc[Introduction]
+    ** 31. xref:101_maas_as_developer_lab.adoc[Using MaaS as Developer]
+    ** 32. xref:102_maas_as_platform_engineer_lab.adoc[Configure a new model]
+    ** 33. xref:103_maas_metrics_limits_lab.adoc[Monitor/limit usage]
+
 * 29. xref:99_useful_tips.adoc[Useful Tips]
 * 30. xref:97_syncing_fork.adoc[Syncing Forked Project]
