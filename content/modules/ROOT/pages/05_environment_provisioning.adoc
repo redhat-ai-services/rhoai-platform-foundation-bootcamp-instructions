@@ -2,27 +2,27 @@
 
 # Provisioning a GPU Environment
 
-The subsequent sections of this lab will utilize three instances of the Red Hat OpenShift Container Platform Cluster:
+The subsequent sections of this lab will utilize one instance of the Red Hat OpenShift Container Platform Cluster:
 
-. **GPU Cluster**: for running the model training and deployment exercises
-. **Dev Cluster**: to simulate a development OpenShift cluster
-. (Optional) **Prod Cluster**: to simulate a production OpenShift cluster
+This Cluster utilized *Machine Autoscaler* to dynamically add and remove worker nodes as needed, based on the workload. If a GPU node is needed, the cluster will automatically scale one up. If the GPU node is not being utilized, it will automatically scale down the node. 
 
 In this section we will order the clusters at demo.redhat.com. Note that these clusters are fairly short lived, typically they have a 6 hour runtime and are deleted after 48 hours, although the runtime can be temporarily extended as needed.
 
-The  clusters typically take 1-2 hours to provision, although they may take a little longer on Monday mornings as they are using AWS spot instances and demand is usually high at the start of the work week. So it's suggested to provision them, and continue with the subsequent sections that don't require cluster access yet.
+The  clusters typically take 1-2 hours to provision.
 
-## Provision the GPU Cluster
+## Provision the AWS Cluster
 
-The GPU cluster where we will run our demonstration projects requires a little more resources that the other two, so lets provision this first.
+The AWS cluster is where we will run our RHOAI installation and lab exercises.
 
 . In a web browser, navigate to demo.redhat.com and request a new instance of https://demo.redhat.com/catalog?search=aws&item=babylon-catalog-prod%2Fsandboxes-gpte.sandbox-ocp.prod[_**AWS with OpenShift Open Environment**_, window=_blank]. Note that this is a blank / empty instance of OpenShift with no other operators or demo components preloaded, ideal for the subsequent lab exercises where we will provision RHOAI.
+
+. Select **Practice / Enablement** for the **Activity** field and **Conduct internal training/enablment** for the Purpose field. For the **Region**, select **us-east-2**. If you are in EMEA or APAC, still choose **us-east-2**.
 
 +
 [.bordershadow]
 image::OrderAWS_env.png[width=35%]
 
-. Change the the **Control Plane Instance Type** to **m6a.4xlarge**, as the default machine configuration does not have sufficient compute resources for all of the various RHOAI and related operators we will be installing.
+. Select **4.19** for the **OpenShift Version**. Change the the **Control Plane Instance Type** to **m6a.4xlarge**, as the default machine configuration does not have sufficient compute resources for all of the various RHOAI and related operators we will be installing.
 
 +
 [.bordershadow]
@@ -30,17 +30,6 @@ image::OrderAWS_controlplane.png[width=35%]
 
 . You should be able to use the default (latest) version of OpenShift, however since there are continuous new product releases it's a good idea to double check the https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[RHOAI Documentation, window=_blank], under the **Supported configurations** subsection to ensure compatibility.
 
-
-## Provision the Development and Production (Optional) Clusters
-
-These are simple clusters used to demonstrate Kustomize overlays in a subsequent lab. One cluster will be used for the _**Dev**_ environment. (Optional) The other for the _**Prod**_ environment.
-
-. Navigate to demo.redhat.com and order the https://catalog.demo.redhat.com/catalog?item=babylon-catalog-prod%2Fsandboxes-gpte.ocp-wksp.prod[_**Red Hat OpenShift Container Platform Cluster(AWS)**_, window=_blank] (Note: this is a different link / catalog item from the one above)
-. Select all default configuration options
-. (Optional) Repeat these steps if using for Prod cluster
-
-[.bordershadow]
-image::clustersettings_Dev_Prod.png[width=50%]
 
 ## While You Wait
 
