@@ -1,7 +1,7 @@
 = *Lab Guide: Exploring Agentic AI with LlamaStack Notebooks*
 :icons: font
 
-This lab guide provides the most current and accurate method for exploring the Llama Stack on Red Hat OpenShift AI (RHOAI). As LlamaStack integration is currently in a Developer Preview, the officially endorsed approach is to use a set of hands-on Python notebooks provided by Red Hat in the `llama-stack-demos` repository.
+This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI), which is currently in Developer Preview.
 
 This lab will guide you through setting up this environment and exploring the core concepts of building advanced, multi-component agentic systems.
 
@@ -407,3 +407,5 @@ When you have finished the lab, remember to shut down your workbench from the RH
 
 
 * *Llama Stack Demos GitHub Repository*: link:https://github.com/opendatahub-io/llama-stack-demos[Llama Stack Demos]
+* *Llama Stack Documentation*: link:https://llama-stack.readthedocs.io/en/latest/[Llama Stack Docs]
+* *Model Context Protocol Documentation*: link:https://modelcontextprotocol.io/docs/getting-started/intro[MCP Docs]
