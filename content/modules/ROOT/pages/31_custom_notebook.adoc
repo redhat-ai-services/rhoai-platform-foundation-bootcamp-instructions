@@ -228,7 +228,7 @@ This takes some time to build. It will build the base image first and then build
 . The repository is now public and can be accessed by anyone.
 ====
 
-## Create a custom-workbench in RHOAI
+## Create a custom-workbench in RHOAI [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 . Let's now add our newly build image (that's in your quay repository) to RHOAI. In the `parasol-insurance` tenant (`ai-accelerator/tenants/parasol-insurance`), create a directory named `custom-workbench`
 

@@ -1,4 +1,4 @@
-# Evaluating Large Lanuage Models 
+# Evaluating Large Lanuage Models [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 In this section we will cover how Large Language Models can be evaluated using LM-Eval framework.
 

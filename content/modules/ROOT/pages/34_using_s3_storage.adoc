@@ -14,13 +14,13 @@ For more information about S3:
 * AWS documentation: https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html[What is Amazon S3?]
 * Wikipedia: https://en.wikipedia.org/wiki/Amazon_S3[Amazon S3]
 
-## Adding MinIO to the Cluster
+## Adding MinIO to the Cluster [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 In this section we will add MinIO S3 storage operator to our dev OpenShift cluster configuration project so Argo can deploy it.
 
 If you need a reference, the ai-accelerator project has MinIO set up in under the `tenants/ai-examples folder`.
 
-### Set up MinIO
+### Set up MinIO [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 . Create a namespace resource called `object-datastore.yaml` in the `tenants/parasol-insurance/namespaces/base`. This should be an OpenShift Namespace resource named `object-datastore`.
 
@@ -145,11 +145,11 @@ Explore the S3 storage.
 To check your work please refer to https://github.com/redhat-ai-services/ai-accelerator-qa/tree/2.16-parasol-dev-prod[This Branch] 
 ====
 
-## Explore S3 with Boto3
+## Explore S3 with Boto3 
 
 We have previously used a custom workbench to explore how to train a model. Now we will use a standard workbench to explore the S3 storage using the Boto3 Python package.
 
-### Create a standard workbench
+### Create a standard workbench [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 
 . Navigate to RHOAI dashboard, and stop the `custom-workbench`.
 

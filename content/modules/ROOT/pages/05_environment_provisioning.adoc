@@ -38,7 +38,7 @@ The provisioning process will take a while to complete, so why not take some tim
 * https://github.com/redhat-ai-services/ai-accelerator[Project Introduction README, window=_blank]
 * https://github.com/redhat-ai-services/ai-accelerator/blob/main/documentation/overview.md[AI Accelerator Overview, window=_blank]
 * https://github.com/redhat-ai-services/ai-accelerator/blob/main/documentation/installation.md[AI Accelerator Installation Procedure, window=_blank]
-* https://github.com/redhat-ai-services/ai-accelerator/tree/main/tenants[Tenants documentation, window=_blank]
+* https://github.com/redhat-ai-services/ai-accelerator-examples[AI Accelerator Examples documentation (separate git repository), window=_blank]
 
 ## When the Cluster is Ready
 

@@ -17,7 +17,7 @@ image::Login_command.png[Copy the login token]
 If you have certificate errors to login to the cluster, remember to use `--insecure-skip-tls-verify=true` in the login command.
 ====
 
-## Setting up ai-accelerator project for Dev cluster
+## Setting up ai-accelerator project for Dev cluster [DEPRECATED Needs refactoring for removal of tenants & ai-examples folders]
 .Instructions to fork ai-accelerator
 [%collapsible]
 ====
