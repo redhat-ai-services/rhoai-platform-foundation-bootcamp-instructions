@@ -16,7 +16,7 @@ The AWS cluster is where we will run our RHOAI installation and lab exercises.
 
 . In a web browser, navigate to demo.redhat.com and request a new instance of https://demo.redhat.com/catalog?search=aws&item=babylon-catalog-prod%2Fsandboxes-gpte.sandbox-ocp.prod[_**AWS with OpenShift Open Environment**_, window=_blank]. Note that this is a blank / empty instance of OpenShift with no other operators or demo components preloaded, ideal for the subsequent lab exercises where we will provision RHOAI.
 
-. Select **Practice / Enablement** for the **Activity** field and **Conduct internal training/enablment** for the Purpose field. For the **Region**, select **us-east-2**. If you are in EMEA or APAC, still choose **us-east-2**.
+. Select **Practice / Enablement** for the **Activity** field and **Conduct internal training/enablement** for the Purpose field. For the **Region**, select **us-east-2**. If you are in EMEA or APAC, still choose **us-east-2**.
 
 +
 [.bordershadow]

@@ -1,4 +1,4 @@
-= **Lab Introdcution: GPU as a Service with GPU slicing and Kueue**
+= **Lab Introduction: GPU as a Service with GPU slicing and Kueue**
 :icons: font
 :stem: latexmath
 
