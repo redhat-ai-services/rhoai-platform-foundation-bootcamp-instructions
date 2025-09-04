@@ -20,13 +20,13 @@ The AWS cluster is where we will run our RHOAI installation and lab exercises.
 
 +
 [.bordershadow]
-image::OrderAWS_env.png[width=35%]
+image::OrderAWS_env.png[width=75%]
 
 . Select **4.19** for the **OpenShift Version**. Change the the **Control Plane Instance Type** to **m6a.4xlarge**, as the default machine configuration does not have sufficient compute resources for all of the various RHOAI and related operators we will be installing.
 
 +
 [.bordershadow]
-image::OrderAWS_controlplane.png[width=35%]
+image::OrderAWS_controlplane.png[width=50%]
 
 . You should be able to use the default (latest) version of OpenShift, however since there are continuous new product releases it's a good idea to double check the https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/[RHOAI Documentation, window=_blank], under the **Supported configurations** subsection to ensure compatibility.
 
