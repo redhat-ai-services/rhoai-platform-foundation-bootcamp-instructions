@@ -132,7 +132,8 @@ Save this file as `ocp-mcp-service.yaml` and apply it using `oc apply -f ocp-mcp
 
 === *2.2. Setting Up Llama Stack Resources*
 
-1.  First, create a new namespace for the Llama Stack components:
+1. First, create a new namespace for the Llama Stack components:
+
 +
 [source,yaml]
 ----
@@ -141,10 +142,21 @@ kind: Namespace
 metadata:
   name: llama-stack
 ----
-+  
++
 Save this file as `namespace.yaml` and apply it using `oc apply -f namespace.yaml`.
 
-2.  Next, create a secret to store your API keys. This file defines three separate secrets: two for the different language models (Llama 3 and Llama 4) and one for the Tavily search tool.
+2. Create MAAS API Keys.
++
+Go to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for the Llama 3 as well as Llama 4 models.
++
+
+3. Create Teavily API Keys.
+
++
+Go to link:https://www.tavily.com/[Teavily] to register and create an API token.
++
+
+4. Next, create a secret to store your API keys. This file defines three separate secrets: two for the different language models (Llama 3 and Llama 4) and one for the Tavily search tool.
 +
 [source,yaml]
 ----
@@ -153,18 +165,17 @@ apiVersion: v1
 metadata:
   name: llama-3-2-3b
   namespace: llama-stack
-data:
-  apiKey: Y2hhbmdfbWU=
+stringData:
+  apiKey: <change-me>
 type: Opaque
-
 ---
 kind: Secret
 apiVersion: v1
 metadata:
   name: llama-4-scout-17b-16e-w4a16
   namespace: llama-stack
-data:
-  apiKey: Y2hhbmdfbWU=
+stringData:
+  apiKey: <change-me>
 type: Opaque
 
 ---
@@ -173,15 +184,15 @@ apiVersion: v1
 metadata:
   name: tavily-search-key
   namespace: llama-stack
-data:
-  tavily-search-api-key: Y2hhbmdfbWU=
+stringData:
+  apiKey: <change-me>
 type: Opaque
 
 ----
 +  
 Apply the secret using `oc apply -f creds.yaml`.
 
-3.  Now, create the `ConfigMap` for the Llama Stack. Most of the key configuration for the LlamaStack server is done in the `run.yaml` file, which is encapsulated within this `ConfigMap`. For this lab, we will be focusing on a few of its APIs, such as `inference` and `tool_runtime`. Save the following as `llama-stack-config.yaml`:
+5.  Now, create the `ConfigMap` for the Llama Stack. Most of the key configuration for the LlamaStack server is done in the `run.yaml` file, which is encapsulated within this `ConfigMap`. For this lab, we will be focusing on a few of its APIs, such as `inference` and `tool_runtime`. Save the following as `llama-stack-config.yaml`:
 +
 [source,yaml]
 ----
@@ -263,7 +274,7 @@ data:
 +  
 Apply the `ConfigMap` using `oc apply -f llama-stack-config.yaml`.
 
-4.  Finally, create the `LlamaStackDistribution`. Save the following as `llama-stack-distro.yaml`:
+5.  Finally, create the `LlamaStackDistribution`. Save the following as `llama-stack-distro.yaml`:
 +
 [source,yaml]
 ----
@@ -313,11 +324,11 @@ spec:
 +  
 Apply the distribution using `oc apply -f llama-stack-distro.yaml`.
 
-5.  Validate that the Llama Stack server is running correctly. Check the logs of the pod to ensure that it has successfully connected to the models and the OpenShift MCP server.
+6.  Validate that the Llama Stack server is running correctly. Check the logs of the pod to ensure that it has successfully connected to the models and the OpenShift MCP server.
 +
 [source,bash]
 ----
-oc logs -n llama-stack $(oc get pods -n llama-stack -l app=llamastack-with-config -o name | head -n 1)
+oc logs -n llama-stack $(oc get pods -n llama-stack -l app=llama-stack -o name | head -n 1)
 ----
 +
 Look for messages indicating successful connections and that the server is ready to accept requests.
@@ -326,7 +337,7 @@ Look for messages indicating successful connections and that the server is ready
 
 Now that the Llama Stack server is running, you can interact with it from a Data Science workbench using the `llama-stack` Python client.
 
-1.  In your workbench, open a new notebook.
+1.  Within a workbench of your choice, open a new notebook.
 
 2.  First, install the `llama-stack` client library:
 +
