@@ -4,10 +4,10 @@ The AI Accelerator project is an automated way to deploy RHOAI, relevent operato
 
 Navigate to the ai-accelerator github project: https://github.com/redhat-ai-services/ai-accelerator
 
-The ai-accelerator project installs Open Shift GitOps (ArgoCD) first, then uses ArgoCD to install RHOAI and the related operators. It also deploys examples such as inference services, a workbench, and pipelines.
+The ai-accelerator project installs OpenShift GitOps (ArgoCD) first, then uses ArgoCD to install RHOAI and the related operators. It also deploys examples such as inference services, a workbench, and pipelines.
 
 * The list of operators it can install are in the https://github.com/redhat-ai-services/ai-accelerator/tree/main/components/operators[operators] folder.
-*  Examples of model serving, workbench, and pipelines can be found in the https://github.com/redhat-ai-services/ai-accelerator/tree/main/tenants[tenants] folder.
+* Examples of model serving, workbench, and pipelines can be found in the https://github.com/redhat-ai-services/ai-accelerator/tree/main/tenants[tenants] folder.
 
 ## Kustomize
 
@@ -18,19 +18,20 @@ If you are unfamiliar with Kustomize, take a look at the following tutorials:
 * https://www.redhat.com/en/blog/your-guide-to-continuous-delivery-with-openshift-gitops-and-kustomize[Your Guide to Continuous Delivery with OpenShift GitOps and Kustomize]
 * https://devopscube.com/kustomize-tutorial/[Kustomize Tutorial: Comprehensive Guide For Beginners]
 
+
 ### Overview of Kustomize in AI-Accelerator Project
 
 Let's try to understand how Kustomize is being used to deploy the different resources in the ai-accelerator.
 
-1. When running the _**bootstrap.sh**_ script, it will apply the Open Shift GitOps operator by using Kustomize on the https://github.com/redhat-ai-services/ai-accelerator/blob/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/scripts/bootstrap.sh#L11[GitOps_Overlay] https://github.com/redhat-ai-services/ai-accelerator/tree/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/components/operators/openshift-gitops/operator/overlays/latest[folder]:
+1. When running the _**bootstrap.sh**_ script, it will apply the OpenShift GitOps operator by using Kustomize on the https://github.com/redhat-ai-services/ai-accelerator/blob/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/scripts/bootstrap.sh#L11[GitOps_Overlay] https://github.com/redhat-ai-services/ai-accelerator/tree/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/components/operators/openshift-gitops/operator/overlays/latest[folder]:
 
 [.bordershadow]
 image::GitOps_overlay.png[]
 
-In `scripts/bootstrap.sh` the GitOps resources are installed from the _GITOPS_OVERLAY_ variable and are applied to the cluster:
+In `scripts/bootstrap.sh` the GitOps resources are installed using `GITOPS_OVERLAY` variable and are applied to the cluster:
 
 [start=2]
-. After GitOps installs, it will then run a https://github.com/redhat-ai-services/ai-accelerator/blob/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/scripts/bootstrap.sh#L80[`kustomize build`] on the `bootstrap/overlays/*` folder. Which ever overlay you select in the bootstrap folder, it will apply RHOAI as well as the `clusters` folder. In this instance, we choose the `rhoai-fast` overlay.
+. After GitOps installs, it will then run a https://github.com/redhat-ai-services/ai-accelerator/blob/b90f025691e14d8e8a8d5ff3452107f8a0c8f48d/scripts/bootstrap.sh#L80[`kustomize build`] on the `bootstrap/overlays/*` folder. Whichever overlay you select in the bootstrap folder, it will apply RHOAI as well as the `clusters` folder. In this instance, we choose the `rhoai-fast` overlay.
 
 Looking at the picture below:
 
@@ -44,7 +45,7 @@ image::Bootstrap_overlays2.png[]
 2. & 3. Kustomize looks in the `bootstrap/base` folder for `bootstrap/base/kustomization.yaml` file.
 
 [start=4]
-. `bootstrap/base/kustomization.yaml` references `components/operators/openshift-gitops/instance/ovelays/rhdp`. This installs the the ArgoCD instance for the GitOps operator. Look at the kustomization files in the folder(s) to see what it installs.
+. `bootstrap/base/kustomization.yaml` references `components/operators/openshift-gitops/instance/overlays/rhdp`. This installs the the ArgoCD instance for the GitOps operator. Look at the kustomization files in the folder(s) to see what it installs.
 
 . Kustomize looks in the `clusters/overlays/rhoai-fast` folder for `clusters/overlays/rhoai-fast/kustomization.yaml`.
 
@@ -75,7 +76,7 @@ image::Bootstrap_overlays3.3.png[]
 
 . `components/argo/projects/base/kustomization.yaml` file will has a list of resources in the yellow box. These Argo AppProjects resources will be applied.
 
-ArgoCD ApplicationSet resources follow the App of Apps concept. Where an application manages a group of applications. The ApplicationSet resource has the information of what folder and resources it will be deploying to the cluster (from a repository). ApplicationSet references an AppProject resource.
+ArgoCD ApplicationSet resources follow the App of Apps concept, where an application manages a group of applications. The ApplicationSet resource has the information of what folder and resources it will be deploying to the cluster (from a repository). ApplicationSet references an AppProject resource.
 
 ArgoCD AppProject resources allows the grouping of projects logically and for scope.
 
