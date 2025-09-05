@@ -303,7 +303,10 @@ spec:
       name: llama-stack
       port: 8321
     distribution:
-      name: remote-vllm
+      name: rh-dev
+    storage:
+      mountPath: /opt/app-root/src/
+      size: 10Gi
     userConfig:
       configMapName: llama-stack-config
 ----
