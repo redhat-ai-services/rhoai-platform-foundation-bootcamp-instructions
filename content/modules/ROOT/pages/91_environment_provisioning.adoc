@@ -117,3 +117,41 @@ image::nvidia-dcgm-dashboard.png[]
 
 * Follow the instructions on the following page: https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/openshift/enable-gpu-op-dashboard.html#enable-the-gpu-operator-dashboard[Enable the NVIDIA GPU Operator usage information,window=_blank]
 
+[NOTE]
+[%collapsible]
+====
+[discrete]
+== Expected issue resolution:
+
+* If you encounter an issue where the OpenShift AI Operator not being installed in the OpenShift console, you can resolve this by following the following steps in OpenShift GitOps:
+
+[discrete]
+1.  Navigate to the OpenShift GitOps console.
+2.  Select the `openshift-ai-operator` application.
+3.  Click on the "Syncing" button to manually synchronize the application.
+
+[.bordershadow]
+image::GitOpsSyncing.png[]
+
+[discrete]
+4.  Click on the "Terminate" button to manually stop the sync.
+
+[.bordershadow]
+image::ArgoCDTerminate.png[]
+
+[discrete]
+5. Click on the `Delete` button to confirm.
+
+[.bordershadow]
+image::DeleteRHOAIapp.png[]
+
+[discrete]
+6. Confirm the deletion by typing the application name `openshift-ai-operator` in the confirmation dialog and clicking the `OK` button.
+
+[.bordershadow]
+image::ConfirmdeleteRHOAI.png[]
+
+[discrete]
+7. After a few minutes, refresh the OpenShift console. The OpenShift AI Operator should now be visible under Installed Operators in the OpenShift console.
+
+====
