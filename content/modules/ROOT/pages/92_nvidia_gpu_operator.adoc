@@ -4,78 +4,112 @@
 :source-highlighter: highlight.js
 :numbered:
 
-This lab guide shows the steps needed to install the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator on OpenShift] and the configuration required to enable Multi-Instance GPU (MIG) to increase the utilization of the GPU. The entire process will be managed using a GitOps approach. This method allows you to manage your cluster's desired state declaratively via a Git repository, ensuring configurations are version-controlled, auditable, and consistently deployable.
+This lab guide uses the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator on OpenShift] and demonstrates the configuration needed to enable GPU *time slicing*. This approach improves GPU utilization by allowing multiple workloads to share a single GPU.
 
-For this lab, the node will use a single `NVIDIA A100` GPU. To demonstrate Multi-Instance GPU (MIG), the GPU will be sliced into a specific configuration. The https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html#a100-mig-profiles[A100 MIG profile] used for this lab will be a combination of `1x 3g.20gb`, `1x 2g.10gb`, and `2x 1g.5gb`.
+The final configuration will use *time slicing* because the *NVIDIA A10G Tensor Core GPU*, which is part of the provisioned link:https://aws.amazon.com/ec2/instance-types/g5/[Amazon EC2 G5 Instance], does *not* support Multi-Instance GPU (MIG). 🥴
+However MIG is playing acrucial role in productive enviroenments as explained in the introduction. Therfore the theoretical approach to enable MIG is exaplained in this Guide.
 
-With this scenario, it will be possible to serve a small `ibm-granite/granite-3.3-2b-instruct` model with high priority on one slice while running experiments in parallel on other slices.
+In this lab, each worker node will be provisioned with a single NVIDIA A10G Tensor Core GPU. The created time slices will then be used to simulate a scenario of *fair resource sharing* with Kueue.
 
 [NOTE]
-.Time Slicing vs. MIG for Model Serving
+.Time slicing compared to MIG for Model Serving
 ====
-NVIDIA time-slicing is a valuable strategy for serving vLLM models when you need to maximize GPU utilization on older or non-MIG capable hardware. It is ideal for mixed or bursty workloads where cost efficiency is a priority and hardware-level isolation isn't a strict requirement. For newer GPUs and scenarios demanding strong performance isolation and predictable resource allocation, NVIDIA MIG is the preferred choice.
+NVIDIA time-slicing within OpenShift is a valuable strategy for serving vLLM models when you need to maximize GPU utilization on older or non-MIG capable hardware, have mixed or bursty workloads, prioritize cost efficiency, or operate within a trusted environment where hardware-level isolation isn't a strict requirement. For newer GPUs and scenarios demanding strong performance isolation and predictable resource allocation, NVIDIA MIG might be the preferred choice.
 ====
 
-== 1. Introduction to the Core Operators
+== *1. Introduction*
 
-Installing the NVIDIA GPU Operator on OpenShift involves a series of steps to ensure your cluster can properly utilize NVIDIA GPUs. This process relies on the Node Feature Discovery (NFD) Operator being installed first.
+Installing the NVIDIA GPU Operator on OpenShift involves a series of steps to ensure your cluster can properly utilize NVIDIA GPUs for accelerated workloads.
+In order to use the NVIDIA GPU Operator the Node Feature Discovery (NFD) Operator has to be installed first.
+The NFD Operator will add labels to the Nodes so the NVIDIA GPU Operator will install the correct drivers on the Nodes.
 
-=== 1.1. Node Feature Discovery (NFD) Operator
-OpenShift is designed to be hardware-agnostic and does not inherently know what specific hardware components are present on its nodes. The NFD Operator fills this gap.
+=== *1.1. Node Feature Discovery (NFD) Operator*
+OpenShift (and Kubernetes in general) is designed to be hardware-agnostic. It doesn't inherently know what specific hardware components (like NVIDIA GPUs) are present on its nodes. The NFD Operator fills this gap.
 
-* *Standardized Labeling:* Once NFD discovers a hardware feature like an NVIDIA GPU, it applies a standardized Kubernetes label to that node, such as `feature.node.kubernetes.io/pci-10de.present=true`. The `10de` is the unique PCI vendor ID for NVIDIA Corporation.
+* Standardized Labeling: Once NFD discovers a specific hardware feature, like an NVIDIA GPU, it applies a standardized Kubernetes label to that node. For NVIDIA GPUs, the most common label is ``feature.node.kubernetes.io/pci-10de.present=true``. ``feature.node.kubernetes.io/:`` This is a standard prefix for NFD-generated labels. ``pci-10de: 10de`` is the PCI vendor ID for NVIDIA Corporation. This uniquely identifies NVIDIA hardware. ``.present=true:`` Indicates that a device with this PCI ID is present on the node.
 
-=== 1.2. NVIDIA GPU Operator
-The NVIDIA GPU Operator intelligently deploys its components (like the NVIDIA driver, container toolkit, and device plugin) only to nodes that have GPUs.
+=== *1.2. NVIDIA GPU Operator*
+The NVIDIA GPU Operator is designed to be intelligent and efficient. It doesn't want to deploy its heavy components (like the NVIDIA driver daemonset, container toolkit, device plugin) on every node in your cluster, especially if most of your nodes don't have GPUs.
 
-* The GPU Operator uses the labels from NFD as a selector. It deploys its components only to nodes that have the `feature.node.kubernetes.io/pci-10de.present=true` label, ensuring resources are not wasted on non-GPU nodes.
-* These labels are also fundamental for the Kubernetes scheduler. When a user requests GPU resources in a Pod specification (e.g., `resources.limits: nvidia.com/gpu: 1`), the scheduler uses these labels to find a GPU-enabled node.
+* The GPU Operator uses these NFD labels as a selector. It deploys its components only to nodes that have the ``feature.node.kubernetes.io/pci-10de.present=true`` label. This ensures that resources are not wasted on non-GPU nodes.
+* Beyond the GPU Operator's internal logic, these labels are fundamental for Kubernetes' scheduler. When a user defines a Pod that requires GPU resources (e.g., by specifying ``resources.limits.nvidia.com/gpu: 1``), the Kubernetes scheduler looks for nodes that have the necessary GPU capacity. The labels provided by NFD are crucial for this matching process. Without them, Kubernetes wouldn't know which nodes are "GPU-enabled."
 
-[quote, "Red Hat OpenShift Documentation"]
+As stated in the official <<documentation>>:
+
+[quote, "Red Hat", "OpenShift Documentation, Version 4.17"]
 ____
-A node can host one or more GPUs, but they must be of the same type. For example, a node can have two NVIDIA A100 GPUs, but a node with one A100 GPU and one T4 GPU is not supported.
+In addition, the worker nodes can host one or more GPUs, but they must be of the same type. For example, a node can have two NVIDIA A100 GPUs, but a node with one A100 GPU and one T4 GPU is not supported. The NVIDIA Device Plugin for Kubernetes does not support mixing different GPU models on the same node.
 ____
-[NOTE]
-The maximum number of GPUs per node is limited by the number of https://www.hp.com/us-en/shop/tech-takes/what-are-pcie-slots-pc[PCIe slots] on the node's motherboard.
-[/NOTE]
+ 
+Multiple Nodes with Different GPU Types: This is the most common and recommended approach. You dedicate individual worker nodes to a specific GPU model. For example:
 
-[NOTE]
-.NVIDIA Network Operator (For Information Only)
+* *Node 1:* Two NVIDIA A100 GPUs
+* *Node 2:* Four NVIDIA T4 GPUs
+* *Node 3:* No GPUs (CPU-only)
+
+Your cluster can still have a mix of these node types.
+The maximum number of GPUs per Node is limited by the number of https://www.hp.com/us-en/shop/tech-takes/what-are-pcie-slots-pc[PCI slots] within the Mainboard of the Node.
+
+[NOTE] 
+.NVIDIA Network Operator
 [%collapsible]
 ====
 IMPORTANT: DO NOT DEPLOY THE NVIDIA NETWORK OPERATOR IN THIS LAB!
 
-The NVIDIA Network Operator for OpenShift simplifies the deployment of high-performance networking capabilities. It works with the GPU Operator to enable technologies like *RDMA (Remote Direct Memory Access)* and *GPUDirect RDMA*, which allow direct data exchange between NVIDIA GPUs and network adapters. This bypasses the CPU and system memory, leading to extremely low-latency, high-bandwidth data transfers, which is critical for distributed deep learning and HPC.
+[discrete]
+=== *1.3. NVIDIA Network Operator*
+The NVIDIA Network Operator for OpenShift is a specialized Kubernetes Operator designed to simplify the deployment and management of high-performance networking capabilities provided by NVIDIA (formerly Mellanox) in Red Hat OpenShift clusters. It's particularly crucial for workloads that demand high-throughput and low-latency communication, such as AI/ML, HPC (High-Performance Computing), and certain telco applications (like vRAN).
+The NVIDIA Network Operator works in close conjunction with the NVIDIA GPU Operator. While the GPU Operator focuses on provisioning and managing NVIDIA GPUs (drivers, container runtime, device plugins), the Network Operator handles the networking components that enable:
+
+* *RDMA (Remote Direct Memory Access):* Allows direct memory access from the memory of one computer to that of another without involving the operating system, significantly reducing latency and CPU overhead for data transfers.
+
+* *GPUDirect RDMA:* An NVIDIA technology that enables a direct path for data exchange between NVIDIA GPUs and network adapters (like ConnectX series) with RDMA capabilities. This bypasses the CPU and system memory, leading to extremely low-latency, high-bandwidth data transfers, which is critical for distributed deep learning and HPC.
+
+* *SR-IOV (Single Root I/O Virtualization):* Allows a single physical network adapter to be shared by multiple virtual machines or containers as if they had dedicated hardware, improving network performance and reducing overhead.
+
+* *High-speed secondary networks:* Providing dedicated network interfaces for application traffic, separate from the OpenShift cluster's primary network. This is crucial for performance-sensitive workloads.
+
 ====
 
-== 2. GitOps Structure and Base Configuration (Prerequisites)
+== *2. Overlay Configuration for GPU Node Setup and Slicing*
 
-In a GitOps workflow, your configurations are structured as YAML files within a Git repository. A typical structure includes a `base` directory for common cluster configurations and an `overlays` directory for environment-specific configurations.
+[WARNING]
+.Timeslicing due to resource constraints
+====
+The GPU's avaliable in the lab are two **AWS NVIDIA A10G Tensor Core GPU** with 24 GB of memory per GPU.
+As written earlier not all GPU's support MIG. Therefore we will use timeslicing in the lab!
+But for complentnes it's shown how MIG would work as there are always request for MIG in production systems.
+====
 
-Before applying your overlay, ensure these fundamental operators are installed cluster-wide, typically via Operator Lifecycle Manager (OLM) subscriptions defined in your `base` GitOps repository:
+=== *2.1 NVIDIA GPU Operator MIG configuration example*
 
-* **Node Feature Discovery (NFD) Operator:** Discovers hardware features and labels nodes.
-* **NVIDIA GPU Operator:** Installs drivers and tooling on GPU-enabled nodes.
+[WARNING]
+.Timeslicing due to resource constraints
+====
+Do not configure anything here. This configuration does not work leveraging the configured GPU's.
+====
 
-== 3. Overlay Configuration for GPU Slicing
+NVIDIA's Multi-Instance GPU (MIG) slicing is a powerful feature that allows you to partition a single compatible NVIDIA GPU (such as the `A100` or `H100`) into several smaller, fully isolated, and independent GPU instances. This offers significant advantages, especially in multi-tenant or diverse workload environments. The https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html#example-custom-mig-configuration-during-installation[Custom MIG Configuration During Installation] documentation explains further configuration possibilities.
 
-This section defines the specific configurations for your GPU slicing, which would be part of your GitOps overlay.
+* Hardware-Level Isolation and Security
+* Predictable Performance and Quality of Service (QoS)
+* Maximized GPU Utilization and Cost Efficiency
+* Fine-Grained Resource Allocation and Flexibility
+* Simplified Management in Containerized Environments (e.g., Kubernetes)
 
-=== 3.1. ConfigMap for Custom MIG Slicing
-NVIDIA's Multi-Instance GPU (MIG) slicing partitions a single compatible GPU (like an `A100`) into several smaller, fully isolated GPU instances. See the https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html#example-custom-mig-configuration-during-installation[Custom MIG Configuration] documentation for more details.
+==== *ConfigMap for MIG*
+Create a ``configmap`` to specify the MIG configuration:
 
-To configure this, create a `ConfigMap` in your overlay.
-* The `ConfigMap` **must be named `custom-mig-config`** and reside in the `nvidia-gpu-operator` namespace.
-* You must use a https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html#a100-mig-profiles[supported MIG profile].
+* Create a YAML file to define how you want to slice your GPUs.
+* This ConfigMap *must be named `custom-mig-config`* and *reside in the `nvidia-gpu-operator` namespace*.
+* You can define the mig devices in a custom config. But use a https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html#a100-mig-profiles[supported configuration].
 
-.configmap-mig-slicing.yaml
 [source,yaml]
 ----
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: custom-mig-config
-  namespace: nvidia-gpu-operator
 data:
   config.yaml: |
     version: v1
@@ -83,9 +117,9 @@ data:
       all-disabled:
         - devices: all
           mig-enabled: false
-      
+
       custom-mig:
-        - devices: all # This configuration applies to all GPUs on a node
+        - devices: all  # it's possible to target single GPU's here
           mig-enabled: true
           mig-devices:
             "1g.5gb": 2
@@ -93,145 +127,132 @@ data:
             "3g.20gb": 1
 ----
 
-=== 3.2. Patch for ClusterPolicy
+==== *Patch for `ClusterPolicy`*
+* You need to modify the ``gpu-cluster-policy``` within the ``nvidia-gpu-operator``` namespace to point to your ``custom-mig-config``.
+* This is typically accomplished with a Kustomize patch.
 
-To apply this custom MIG configuration, you need to modify the `ClusterPolicy` object managed by the GPU Operator. In a GitOps approach, this is done declaratively using a patch.
+1. If the custom configuration specifies more than one instance profile, set the strategy to `mixed`:
++
+[source,bash]
+----
+oc patch clusterpolicies.nvidia.com/cluster-policy \
+    --type='json' \
+    -p='[{"op":"replace", "path":"/spec/mig/strategy", "value":"mixed"}]'
+----
 
-.patch-cluster-policy.yaml
+2. Patch the cluster policy so MIG Manager uses the custom config map:
++
+[source,bash]
+----
+oc patch clusterpolicies.nvidia.com/cluster-policy \
+    --type='json' \
+    -p='[{"op":"replace", "path":"/spec/migManager/config/name", "value":"custom-mig-config"}]'
+----
+
+3. Label the nodes with the profile to configure:
++
+[source,bash]
+----
+oc label nodes <node-name> nvidia.com/mig.config=custom-mig --overwrite
+----
+
+=== *2.2. NVIDIA GPU Operator time slicing configuration*
+
+[WARNING]
+.Timeslicing due to resource constraints
+====
+In this section the GPU Operator will be configured!
+====
+NVIDIA's time slicing is a powerful feature that allows you to share a single GPU among multiple processes, where each process gets a slice of time to access the GPU's resources. This is particularly useful for running many lightweight, concurrent workloads on a single GPU. It improves utilization and throughput without requiring multiple GPUs or a complex resource management system.
+
+* Shared GPU Resources: Multiple workloads share the same physical GPU, increasing utilization and efficiency.
+* Simpler Configuration: Compared to MIG, time slicing is easier to set up and manage, as it doesn't require partitioning the GPU at the hardware level.
+* Best for Lightweight Workloads: Ideal for running many small AI inference tasks or other GPU-accelerated workloads that don't saturate a full GPU.
+* Dynamic Resource Sharing: The GPU scheduler dynamically allocates GPU time to each process, ensuring fair access.
+
+==== ConfigMap for Time Slicing
+Create a YAML file to define how you want to slice your GPUs.
+This ConfigMap can be named anything, but it must reside in the nvidia-gpu-operator namespace.
+You need to define the number of replicas (slices) for each GPU model.
+
 [source,yaml]
 ----
-apiVersion: nvidia.com/v1
-kind: ClusterPolicy
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: cluster-policy
-# This patch modifies the existing ClusterPolicy object.
-# It sets the MIG strategy to "mixed" and points the MIG manager
-# to our custom ConfigMap.
-$patch: strategic-merge
-spec:
-  mig:
-    strategy: mixed
-  migManager:
-    config:
-      name: custom-mig-config
+  name: device-plugin-config
+  namespace: nvidia-gpu-operator
+data:
+  NVIDIA-A10G: |-
+    version: v1
+    sharing:
+      timeSlicing:
+        resources:
+        - name: nvidia.com/gpu
+          replicas: 5
 ----
+==== Patch for ClusterPolicy
 
-=== 3.3. Label the GPU Node
-
-Finally, you must label the target node to apply the `custom-mig` profile from your `ConfigMap`. This is a one-time manual step to bootstrap the node into the GitOps management state.
+First modify the ``gpu-cluster-policy`` within the ``nvidia-gpu-operator`` namespace to point to the ``device-plugin-config``.
+This tells the NVIDIA Device Plugin to use the configuration you've defined.
+Patch the ClusterPolicy so the Device Plugin uses the custom config map:
 
 [source,bash]
 ----
-oc label node <your-gpu-node-name> nvidia.com/mig.config=custom-mig --overwrite
+oc patch clusterpolicy gpu-cluster-policy \
+  -n nvidia-gpu-operator --type merge \
+  -p '{"spec": {"devicePlugin": {"config": {"name": "device-plugin-config"}}}}'
 ----
+==== Label the nodes
 
-== 4. GitOps Workflow Summary
+After patching the ClusterPolicy, you need to label the nodes that have the GPUs you want to time-slice.
+The GPU Operator will automatically detect this label and apply the new configuration.
 
-1.  **Kustomization File:** In your overlay directory (`overlays/your-lab`), a `kustomization.yaml` file will reference the `configmap-mig-slicing.yaml` and `patch-cluster-policy.yaml` files.
-2.  **Commit Changes:** Push all these YAML files to your Git repository.
-3.  **GitOps Tool Sync:** Your GitOps tool (e.g., Argo CD) detects the changes and applies the manifests to your cluster.
-4.  **Validation:** The GPU Operator will detect the updated `ClusterPolicy` and the node label, and it will reconfigure the GPU on the node according to your `ConfigMap`.
-
-== 5. Configure Accelerator Profiles in OpenShift AI
-
-Once the GPU is sliced, you must expose these slices to data scientists through OpenShift AI. This is done by creating `AcceleratorProfile` resources. Taints on GPU nodes prevent normal workloads from using them, while tolerations in the profiles allow AI workloads to be scheduled there.
-
-Create an `AcceleratorProfile` for each MIG slice.
-
-.accelerator-profile-3g20gb.yaml
-[source,yaml]
+[source,bash]
 ----
-apiVersion: dashboard.opendatahub.io/v1
-kind: AcceleratorProfile
-metadata:
-  name: nvidia-mig-3g.20gb
-spec:
-  displayName: "NVIDIA MIG 3g.20gb"
-  enabled: true
-  identifier: "nvidia.com/mig-3g.20gb"
-  tolerations:
-    - key: "nvidia.com/gpu"
-      operator: "Exists"
-      effect: "NoSchedule"
+oc label --overwrite node \
+  --selector=nvidia.com/gpu.product=NVIDIA-A10G \
+  nvidia.com/device-plugin.config=device-plugin-config
 ----
 
 [NOTE]
+.Label Selector for Nodes
 ====
-You would create similar `AcceleratorProfile` resources for the other slices: `nvidia-mig-2g.10gb` and `nvidia-mig-1g.5gb`.
-====
-
-[NOTE]
-====
-SCREENSHOT MISSING: A screenshot of the OpenShift AI Dashboard under "Settings" -> "Accelerator profiles", showing the list of newly created MIG profiles.
+The selector value ``nvidia.com/gpu.product=A100-SXM4-40GB`` must match the GPU product name as labeled by the GPU Operator's Node Feature Discovery (NFD) component.
 ====
 
-== 6. Verify the Slicing Configuration
-
-In this section, you will deploy different workloads to consume the GPU slices you created.
-
-=== 6.1. Deploy `granite-3.3-2b-instruct` using Model Serving
-
-Deploy the Granite model using the largest slice for high-priority model serving. The article https://developers.redhat.com/articles/2025/01/30/build-and-deploy-modelcar-container-openshift-ai[Build and deploy a ModelCar container in OpenShift AI] demonstrates this approach.
-
-[IMPORTANT]
-The linked article has a future publication date (January 30, 2025) and may be a placeholder. The steps are still valid.
-
-1.  Navigate to the Model Serving page in the OpenShift AI Dashboard.
-2.  Deploy a new model using the image `oci://quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-2b-instruct`.
-3.  When configuring the deployment, select the `NVIDIA MIG 3g.20gb` accelerator profile.
-
-[NOTE]
+== *3. Configure Accelerator types in OpenShift AI*
+[WARNING]
+.Timeslicing due to resource constraints
 ====
-SCREENSHOT MISSING: A screenshot of the "Deploy model" screen in OpenShift AI, with the "Accelerator" dropdown expanded and "NVIDIA MIG 3g.20gb" selected.
+The configuration can be done even without MIG configured within the GPU Operator. But the workload will not be able to be scheduled by the OpenShift scheduler and the Pod will stay pending afterwards.
 ====
 
-=== 6.2. Create a Workbench Using Another Slice
+MIG technology enables a single physical GPU to be logically partitioned into multiple, isolated GPU instances, thereby maximizing hardware utilization and facilitating multi-tenancy on expensive accelerator resources. These granular GPU configurations, along with other specialized hardware specifications, are then encapsulated within Accelerator Profiles (or the more advanced Hardware Profiles) in OpenShift AI. These profiles serve as administrative definitions that abstract complex resource configurations, allowing data scientists to easily request and consume appropriate hardware for their workbenches, model serving, and data pipelines without needing deep Kubernetes expertise.
 
-Create a Jupyter workbench to simulate a data scientist running experiments on a different GPU slice.
+Complementing this, Taints and Tolerations are fundamental Kubernetes primitives that ensure intelligent workload scheduling. GPU-enabled nodes can be "tainted" to prevent general workloads from being scheduled on them. Correspondingly, Accelerator/Hardware Profiles automatically apply "tolerations" to AI/ML workloads, allowing them to be scheduled exclusively on nodes possessing the required specialized hardware.
 
-1.  Navigate to the "Jupyter" section in OpenShift AI and create a new workbench.
-2.  Select a suitable notebook image.
-3.  For the accelerator, select `NVIDIA MIG 2g.10gb`.
-4.  Launch the workbench.
+=== *3.1 Create Accelerator Profiles In RHOAI*
+Create Accelerator Profiles for each MIG Type created beforehand. Configure Tolerations in case Taints are configured and the GPU-enabled Pods should be immune to them.
 
-[NOTE]
-====
-SCREENSHOT MISSING: A screenshot of the Workbench creation screen, showing the selection of the `NVIDIA MIG 2g.10gb` accelerator.
-====
+=== *3.2 Create sample workload*
 
-5.  Once the JupyterLab environment is running, open a new notebook and run the following code to verify that the container sees the correct GPU slice.
+=== *3.3 Inspect the resource requests*
 
-. Install `torch` in a notebook cell.
-[source,python]
-----
-!pip install torch
-----
 
-. Verify the available CUDA device.
-[source,python]
-----
-import torch
+== *4. Verify the configuration*
+In this section the different slices of the GPU are used by different Workloads.
 
-if torch.cuda.is_available():
-    for i in range(torch.cuda.device_count()):
-        print(f"Device {i}: {torch.cuda.get_device_properties(i).name}")
-else:
-    print("No CUDA devices available.")
-----
-The expected output will name the specific MIG slice, for example: `Device 0: NVIDIA A100 80GB PCIe MIG 2g.10gb`.
+=== *4.1. Deploy `granite-3.3-2b-instruct` using ModelCar*
+The Blog Articel https://developers.redhat.com/articles/2025/01/30/build-and-deploy-modelcar-container-openshift-ai?source=sso#[Build and deploy a ModelCar container in OpenShift AI] demonstrates how to build a ModelCar Container and discusses pros and cons about the ModelCar Approach.
+Use the available ModelCar `oci://quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-2b-instruct` to deploy a Model using OpenShift AI.
 
-[NOTE]
-====
-SCREENSHOT MISSING: A screenshot of the Jupyter notebook cell output showing the command's result, confirming the correct MIG device name.
-====
 
-=== 6.3. Delete Model Server and Workbench
-After successful testing, delete the Model Server and Workbench from the OpenShift AI dashboard to free up the GPU resources.
+=== *4.2. Delete Model Server*
+After successful testing delete the Model Server to free the GPUs again.
 
 
 [bibliography]
-
 == References
 
-
-* [[[documentation]]] Red Hat. _OpenShift Documentation_. Version 4.17. Available from: https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/hardware_accelerators/nvidia-gpu-architecture#:~:text=In%20addition%2C%20the,the%20same%20node 
+* [[[documentation]]] Red Hat. _OpenShift Documentation_. Version 4.17. Available from: https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/hardware_accelerators/nvidia-gpu-architecture#:~:text=In%20addition%2C%20the,the%20same%20node
