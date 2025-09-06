@@ -31,7 +31,7 @@ Before you can run the bootstrap script, you need to prepare your local environm
 Installation instructions:
 
 * For `git` see: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git[Git] 
-* For 'yq' see: https://mikefarah.gitbook.io/yq/[yq]
+* For `yq` see: https://mikefarah.gitbook.io/yq/[yq]
 * For `oc` see: https://docs.openshift.com/container-platform/4.16/cli_reference/openshift_cli/getting-started-cli.html[OpenShift CLI]
 * For `kustomize` see: https://kubectl.docs.kubernetes.io/installation/kustomize/[Kustomize]
 ====
@@ -66,14 +66,14 @@ Carefully follow the instructions found in https://github.com/redhat-ai-services
 
 [start=6]
 . Use the _**GPU**_ cluster credentials when logging into OpenShift
-. Select 1 for the `rhoai-eus-2.16-aws-gpu` overlay when prompted: 
+. Select 5 for the `rhoai-stable-2.19-aws-gpu` overlay when prompted: 
 
 [.bordershadow]
 image::bootstrapOptions.png[]
 
 Since we are using GPUs for the GPU instance, we've selected the overlay ending with `*-aws-gpu`. This installs the Nvidia GPU Operator and the Node Feature Discovery (NFD) Operator in additional to configuring an additional OpenShift MachineSet that utilizes an AWS machine containing Nvidia hardware.
 
-Next, the bootstrap script will prompt you to change the GitOps configuration to point to your forked repository (instead of the main repo), select 1 - Yes since we want to use our forked repo on our lab cluster environment, so that we can make changes to the content and have those synchronized using GitOps:
+Next, the bootstrap script will prompt you to change the GitOps configuration to point to your forked repository (instead of the main repo), select `1) Yes` since we want to use our forked repo on our lab cluster environment, so that we can make changes to the content and have those synchronized using GitOps:
 
 [.bordershadow]
 image::bootstrapBranch.png[]
