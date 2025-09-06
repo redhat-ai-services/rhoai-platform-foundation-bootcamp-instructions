@@ -1,6 +1,10 @@
 = Lab Guide: Advanced GPU Quota Management and Preemption with Kueue
 :icons: font
 :stem: latexmath
+:icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
 
 This lab guide will walk you through setting up a sophisticated resource management scenario on OpenShift using Kueue. You will learn how to configure quotas for different teams sharing a common pool of CPU and GPU resources. The primary goal is to demonstrate how a high-priority team can preempt workloads from a lower-priority team to ensure guaranteed access to critical GPU and CPU resources.
 
