@@ -1,5 +1,8 @@
-= *Lab Guide: GitOps for NVIDIA GPU Operator Installation and GPU Slicing*
+= Lab Guide: GitOps for NVIDIA GPU Operator Installation and GPU Slicing
 :icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
 
 This lab guide uses the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator on OpenShift] and demonstrates the configuration needed to enable GPU *time slicing*. This approach improves GPU utilization by allowing multiple workloads to share a single GPU.
 
