@@ -142,7 +142,7 @@ cd jupyter/datascience/ubi9-python-3.12
 
 . Open and edit the _**pyproject.toml**_ in the `jupyter/datascience/ubi9-python-3.12` directory. This file contains the list of Python packages that are installed in the image.
 
-. Add a new Python package to the _**pypeproject.toml**_. For example, let's add the `art` package to the _**pypeproject.toml**_ so we can make fancy ASCII art in our notebook.
+. Add a new Python package to the _**pyproject.toml**_. For example, let's add the `art` package to the _**pyproject.toml**_ so we can make fancy ASCII art in our notebook.
 
 +
 After line 21, add the following line and save the file:
@@ -180,7 +180,8 @@ uv python install ==3.12.*
 [.console-input]
 [source,terminal]
 ----
-../../../scripts/sync-python-lockfiles.sh
+cd ../../../
+./scripts/sync-python-lockfiles.sh
 ----
 
 +
