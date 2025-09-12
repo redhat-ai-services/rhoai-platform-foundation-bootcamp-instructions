@@ -28,11 +28,11 @@ NOTE: You can either use your local machine or a container to build the custom n
 ### Using your dev workstation:
 The following steps are to make sure you have the necessary tools to run the notebooks repository on your local machine.
 
-. Make sure you have Python 3.11 installed on your machine. You can use the `pyenv` tool to manage your Python versions. Also install Pip for installing Python packages. Tested with version pip 25.0.1
+. Make sure you have Python 3.12 installed on your machine. You can use the `pyenv` tool to manage your Python versions. Also install Pip for installing Python packages. Tested with version pip 25.0.1
 
 . Install _**make**_ (or _**gmake**_) on your local machine. Make is a build automation tool that automatically builds executable programs and libraries from source code by reading files called Makefiles which specify how to derive the target program. We need make _** version 4+ **_ to build the notebooks repository.
 
-. Install _**pipenv**_ on your local machine. Pipenv is a tool that aims to bring the best of all packaging worlds (bundled dependencies, virtual environments, and package management) to the Python world. It automatically creates and manages a virtual environment for your projects, as well as adds/removes packages from your Pipfile as you install/uninstall packages. Tested with version 2023.12.1
+. Install _**uv**_ on your local machine. UV is a fast Python package installer and resolver written in Rust. It provides fast, reliable dependency resolution and package installation. Tested with version 0.8.12
 
 . Install _**go**_ on your local machine. The Go programming language is an open source project to make programmers more productive. Tested with version 1.24.0
 
@@ -40,7 +40,7 @@ The following steps are to make sure you have the necessary tools to run the not
 
 
 ### Using Podman to run the builder container:
-We have created a container image that contains all the necessary tools to build the notebooks repository. This image is based on the repository: https://github.com/containers/image_build. You can find the image contents here: https://github.com/redhat-ai-services/rhoai-platform-foundation-bootcamp-instructions/tree/main/custom-notebook-builder-container/podman/Containerfile. This image is based on the latest fedora image and contains: podman, git, make, which, go, pip, python3.11 and pipenv. 
+We have created a container image that contains all the necessary tools to build the notebooks repository. This image is based on the repository: https://github.com/containers/image_build. You can find the image contents here: https://github.com/redhat-ai-services/rhoai-platform-foundation-bootcamp-instructions/tree/main/custom-notebook-builder-container/podman/Containerfile. This image is based on the latest fedora image and contains: podman, git, make, which, go, pip, python3.12 and uv. 
 
 The image has already been built for you and is located here: `quay.io/asheet/custom-nb-builder-container:latest`.
 
@@ -127,53 +127,64 @@ podman login -u='username' -p='password' quay.io
 
 . Open and read the _**Makefile**_ and try to understand the build chain and how the make file works.
 
-. Let's build an image from the notebooks project, specifically the Jupyter Data Science UBI9 Python 3.11 image. 
+. Let's build an image from the notebooks project, specifically the Jupyter Data Science UBI9 Python 3.12 image. 
 
-. Before we build, let's modify the image and add a Python package to the jupyter-data-science-ubi9-python-3.11 image. 
+. Before we build, let's modify the image and add a Python package to the jupyter-data-science-ubi9-python-3.12 image. 
 
-. Change directory to the `jupyter/datascience/ubi9-python-3.11` directory.
+. Change directory to the `jupyter/datascience/ubi9-python-3.12` directory.
 
 +
 [.console-input] 
 [source,terminal]
 ----
-cd jupyter/datascience/ubi9-python-3.11 
+cd jupyter/datascience/ubi9-python-3.12 
 ----
 
-. Open and edit the _**Pipfile**_ in the `jupyter/datascience/ubi9-python-3.11` directory. This file contains the list of Python packages that are installed in the image.
+. Open and edit the _**pyproject.toml**_ in the `jupyter/datascience/ubi9-python-3.12` directory. This file contains the list of Python packages that are installed in the image.
 
-. Add a new Python package to the _**Pipfile**_. For example, let's add the `art` package to the _**Pipfile**_ so we can make fancy ASCII art in our notebook.
+. Add a new Python package to the _**pypeproject.toml**_. For example, let's add the `art` package to the _**pypeproject.toml**_ so we can make fancy ASCII art in our notebook.
 
 +
-After line 22, add the following line and save the file:
+After line 21, add the following line and save the file:
 
 +
 [.console-input]
 [source]
 ----
-art = "~=6.4.0"
+"art~=6.4.0",
 ----
 
-. Use `pipenv lock` to add the new package to the `Pipfile.lock`. This updates the pip lock file with the new package. Run the following command:
-
-+
-[.console-input]
-[source,terminal]
-----
-pipenv lock
-----
-
-. We now will need to update the `requirements.txt` file. The notebooks repository has a handy script that will do this for us. Run the following command (still in the `jupyter/datascience/ubi9-python-3.11` directory):
+. Use `uv lock` to add the new package to the `pylock.toml`. This updates the pip lock file with the new package. Run the following command:
 
 +
 [.console-input]
 [source,terminal]
 ----
-../../../scripts/sync-requirements-txt.sh
+uv lock
+----
++
+.If you get an error saying uv command is not found
+[%collapsible]
+====
+then:
+[.console-input]
+[source,terminal]
+----
+dnf install uv -y
+uv python install ==3.12.*
+----
+====
+
+. The `sync-python-lockfiles.sh` script will update the `pylock.toml` file with the new package. Run the following command (still in the `jupyter/datascience/ubi9-python-3.12` directory):
+
+[.console-input]
+[source,terminal]
+----
+../../../scripts/sync-python-lockfiles.sh
 ----
 
 +
-You can now see that the **_Art_** package has been added to the `requirements.txt` file. As well as updating some of the existing packages.
+You can now see that the **_Art_** package has been added to the `pylock.toml` file. As well as updating some of the existing packages.
 
 . Now that we have added the new package to the image, we need to build the image. Change directory to the root of the repository project. After running this command you should be in the `notebooks` directory.
 
@@ -184,13 +195,15 @@ You can now see that the **_Art_** package has been added to the `requirements.t
 cd ../../../
 ----
 
-. Let's build and push the jupyter-datascience-ubi9-python-3.11 image. Running the make file will build the image and push the image to your quay.io repository. Run the following command:
+. Let's build and push the jupyter-datascience-ubi9-python-3.12 image. Running the make file will build the image and push the image to your quay.io repository. Run the following command:
 +
 
 [.console-input]
 [source,terminal]
 ----
-make jupyter-datascience-ubi9-python-3.11 -e  IMAGE_REGISTRY=quay.io/{quay_id}/workbench-images  -e  RELEASE=2024b
+make jupyter-datascience-ubi9-python-3.12 \
+  IMAGE_REGISTRY=quay.io/{quay_id}/workbench-images \
+  RELEASE=2024b
 ----
 
 +
@@ -200,7 +213,9 @@ make jupyter-datascience-ubi9-python-3.11 -e  IMAGE_REGISTRY=quay.io/{quay_id}/w
 [.console-input]
 [source,terminal]
 ----
-gmake jupyter-datascience-ubi9-python-3.11 -e  IMAGE_REGISTRY=quay.io/{quay_id}/workbench-images  -e  RELEASE=2024b
+gmake jupyter-datascience-ubi9-python-3.12 \
+  IMAGE_REGISTRY=quay.io/{quay_id}/workbench-images \
+  RELEASE=2024b
 ----
 ====
 
@@ -266,7 +281,7 @@ metadata:
     opendatahub.io/notebook-image-creator: admin
     opendatahub.io/notebook-image-desc: This is a custom notebook for running the parasol insurance code
     opendatahub.io/notebook-image-name: Custom Notebook
-    opendatahub.io/notebook-image-url: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.11-2024b_{update_this}'
+    opendatahub.io/notebook-image-url: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.12-2024b_{update_this}'
     opendatahub.io/recommended-accelerators: '[]'
   name: custom-notebook
   namespace: redhat-ods-applications
@@ -282,10 +297,10 @@ spec:
       annotations:
         opendatahub.io/notebook-python-dependencies: '[]'
         opendatahub.io/notebook-software: '[]'
-        openshift.io/imported-from: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.11-2024b_{update_this}'
+        openshift.io/imported-from: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.12-2024b_{update_this}'
       from:
         kind: DockerImage
-        name: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.11-2024b_{update_this}'
+        name: 'quay.io/{quay_id}/workbench-images:jupyter-datascience-ubi9-python-3.12-2024b_{update_this}'
       importPolicy:
         importMode: Legacy
       referencePolicy:
