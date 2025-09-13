@@ -1,0 +1,183 @@
+= Provisioning a GPU Environment with NVIDIA A10G Tensor Core GPU
+:icons: font
+:stem: latexmath
+:icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
+
+This lab provides instructions for provisioning a GPU environment on AWS using NVIDIA A10G Tensor Core GPU. The process involves setting up the AWS environment, cloning a specific Git repository, and executing a bootstrap script to deploy the necessary components. It also includes steps for enabling and configuring GPU monitoring dashboards to visualize metrics.
+
+1. Environment Setup: Follow external documentation to provision the AWS environment.
+
+2. Repository Cloning: Clone the ai-accelerator Git repository and check out the feature/gpu-as-a-service branch.
+
+3. Bootstrap Script: Run the `./bootstrap.sh` script and select the `rhoai-satable-2.22-aws-gpu-time-sliced` option to set up the OpenShift cluster with GPU support.
+
+4. Monitoring: Enable GPU monitoring by creating and applying a specific `ConfigMap` to the openshift-monitoring namespace. This will add a https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/enable-gpu-monitoring-dashboard.html#configuring-the-nvidia-dcgm-exporter-dashboard[NVIDIA DCGM Exporter Dashboard] to the OpenShift console.
+
+5. https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/openshift/enable-gpu-op-dashboard.html#enable-the-gpu-operator-dashboard[Enable the NVIDIA GPU Operator usage information,window=_blank]: Follow additional instructions to configure a console plugin for GPU usage information.
+
+[WARNING]
+.Expected issue and resolution
+====
+If you encounter an issue where the OpenShift AI Operator not being installed see <<workaround>> section for a workaround.
+====
+
+== Install the AWS Enviroment
+Follow the instructions in the xref:05_environment_provisioning.adoc[RHOAI Foundation Bootcamp: Provisioning a GPU Environment] to set up your AWS environment.
+
+== Clone the RHOAI GitHub Repository
+Clone the RHOAI GitHub repository to your local machine: 
+
+[.console-input]
+[source,bash]
+----
+git clone https://github.com/shebistar/ai-accelerator.git # TODO: Change to official repo when available
+cd ai-accelerator
+----
+
+== Temporary Step: change to the feature/gpu-as-a-service branch
+Checkout the `feature/gpu-as-a-service` branch to access the necessary configurations for GPU support.
+
+[.console-input]
+[source,bash]
+----
+git checkout feature/gpu-as-a-service
+----
+
+== Execute the bootstrap script
+1. Run the bootstrap script to set up the environment. This script will handle the installation of necessary components and configurations.
+
+2. Follow the instructions provided in the xref:07_installation.adoc#_bootstrap_the_gpu_cluster[Bootstrap the GPU Cluster] document to complete the installation process.
+
+3. Select the option with `rhoai-satable-2.22-aws-gpu-time-sliced`
+
+[.console-input]
+[source,bash]
+----
+./bootstrap.sh
+----
+
+[.bordershadow]
+image::select-overlay.png[]
+
+[TIP]
+.Interactive Script
+====
+When the script is asking you to update the branch to match your working branch, please do so, selecting option 1 in both prompts.
+====
+
+[.bordershadow]
+image::update_branch.png[]
+
+Now you can browse to the OpenShift console and see that the cluster is up and running. Go to Compute -> Nodes to see the nodes.
+
+[TIP]
+.Be patient
+====
+It will take some time to see the additional Nodes. First the infrastructure will be provisioned in AWS.
+Go to Compute -> Machines to verify the new machines are created.
+====
+
+[.bordershadow]
+image::gpunodes.png[]
+
+
+== Enable Monitoring for GPU Nodes
+
+To enable monitoring for GPU nodes, you need to **add a specific `ConfigMap` to the `openshift-monitoring` namespace**. This `ConfigMap` will instruct the monitoring stack to scrape GPU metrics from the nodes.
+
+1. Create a folder named `gpu-as-a-service/nvidia-dcgm-exporter-dashboard`
++
+[.console-input]
+[source,bash]
+----
+mkdir -p gpu-as-a-service/nvidia-dcgm-exporter-dashboard
+cd gpu-as-a-service/nvidia-dcgm-exporter-dashboard
+----
+
+2. Inside the folder create a file named `kustomization.yaml` with the following content:
++
+
+[.console-input]
+[source,yaml]
+----
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+generatorOptions:
+  labels:
+    console.openshift.io/dashboard: "true"
+    # optional label to enable visibilty in developer perspective
+    console.openshift.io/odc-dashboard: "true"
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: nvidia-dcgm-exporter-dashboard
+    namespace: openshift-config-managed
+    files:
+      - https://github.com/NVIDIA/dcgm-exporter/raw/main/grafana/dcgm-exporter-dashboard.json
+----
+
+
+3. Apply the `ConfigMap` to the `openshift-monitoring` namespace using `oc`:
++
+[.console-input]
+[source,bash]
+----
+oc apply -k .
+----
++
+Output should look like:
++
+[source,bash]
+----
+configmap/nvidia-dcgm-exporter-dashboard created
+----
+
+4. After applying the `ConfigMap`, you should see a new dashboard named https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/enable-gpu-monitoring-dashboard.html#configuring-the-nvidia-dcgm-exporter-dashboard[NVIDIA DCGM Exporter Dashboard] in the OpenShift Monitoring section (Observe -> Dashboards -> NVIDIA DCGM Exporter Dashboard).
++
+[.bordershadow]
+image::nvidia-dcgm-dashboard.png[]
+
+
+== Configure the console plugin for GPU Monitoring
+
+Follow the instructions on the following page: https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/openshift/enable-gpu-op-dashboard.html#enable-the-gpu-operator-dashboard[Enable the NVIDIA GPU Operator usage information,window=_blank].
+
+'''
+
+[NOTE]
+[%collapsible]
+====
+[discrete]
+== Expected issue and resolution [[workaround]]
+
+If you encounter an issue where the OpenShift AI Operator not being installed in the OpenShift console, you can resolve this by following the following steps in OpenShift GitOps:
+
+1.  Navigate to the OpenShift GitOps console.
+2.  Select the `openshift-ai-operator` application.
+3.  Click on the `Syncing` button to manually synchronize the application.
++
+[.bordershadow]
+image::GitOpsSyncing.png[]
+
+4.  Click on the "Terminate" button to manually stop the sync.
++
+[.bordershadow]
+image::ArgoCDTerminate.png[]
+
+5.  Click on the `Delete` button to confirm.
++
+[.bordershadow]
+image::DeleteRHOAIapp.png[]
+
+6.  Confirm the deletion by typing the application name `openshift-ai-operator` in the confirmation dialog and clicking the `OK` button.
++
+[.bordershadow]
+image::ConfirmdeleteRHOAI.png[]
+
+7.  After a few minutes, refresh the OpenShift console. The OpenShift AI Operator should now be visible under Installed Operators in the OpenShift console.
+
+====
