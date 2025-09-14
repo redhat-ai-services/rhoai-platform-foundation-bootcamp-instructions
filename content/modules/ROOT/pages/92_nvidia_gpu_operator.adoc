@@ -156,19 +156,21 @@ Sat Sep 13 13:50:41 2025
 Since there are two Nodes GPU enabled both configurations could be different. It's wort checking both of them.
 
 [WARNING]
-.Timeslicing due to resource constraints
+.Timeslicing due to hardware resource constraints
 ====
-The GPU's avaliable in the lab are two **AWS NVIDIA A10G Tensor Core GPU** with 24 GB of memory per GPU.
-As written earlier not all GPU's support MIG. Therefore we will use timeslicing in the lab!
-But for complentnes it's shown how MIG would work as there are always request for MIG in production systems.
+The GPU's avaliable in the lab are two **AWS NVIDIA A10G Tensor Core GPU** with 24 GB of memory per GPU. +
+As written earlier not all GPU's support MIG, therefore we will use timeslicing in this lab!
 ====
 
 === NVIDIA GPU Operator MIG configuration example
 
 [IMPORTANT]
-.Timeslicing due to resource constraints
+.Timeslicing due to hardware resource constraints
 ====
-Do not configure anything here. This configuration does not work leveraging the configured GPU's.
+This section is here only for the completeness of the guide. +
+As there are often requests for this configuration, here it's shown how MIG work in production systems.
+
+*Do not configure anything here*. This configuration does not work with GPU's available in our lab and it's for informational purposes.
 ====
 
 NVIDIA's Multi-Instance GPU (MIG) slicing is a powerful feature that allows you to partition a single compatible NVIDIA GPU (such as the `A100` or `H100`) into several smaller, fully isolated, and independent GPU instances. This offers significant advantages, especially in multi-tenant or diverse workload environments. The https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html#example-custom-mig-configuration-during-installation[Custom MIG Configuration During Installation] documentation explains further configuration possibilities.
@@ -241,10 +243,11 @@ oc label nodes <node-name> nvidia.com/mig.config=custom-mig --overwrite
 === NVIDIA GPU Operator time slicing configuration
 
 [CAUTION]
-.Timeslicing due to resource constraints
+.Timeslicing due to hardware resource constraints
 ====
-In this section the GPU Operator will be configured!
+In this section we will configure the GPU Operator for our lab!
 ====
+
 NVIDIA's time slicing is a powerful feature that allows you to share a single GPU among multiple processes, where each process gets a slice of time to access the GPU's resources. This is particularly useful for running many lightweight, concurrent workloads on a single GPU. It improves utilization and throughput without requiring multiple GPUs or a complex resource management system.
 
 * Shared GPU Resources: Multiple workloads share the same physical GPU, increasing utilization and efficiency.
