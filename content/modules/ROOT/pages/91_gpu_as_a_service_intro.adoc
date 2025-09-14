@@ -203,6 +203,7 @@ Time-slicing is a software-based technique that allows a single GPU to be shared
 The GPU scheduler allocates time slices to each process. At the end of a time slice, the scheduler preempts the current execution, saves its context, and switches to the next process. This allows multiple workloads to appear to run concurrently on the same physical GPU.
 
 *Pros:*
+
 * *Cost Efficiency:* Maximizes the utilization of expensive GPUs, particularly for small-to-medium-sized workloads that don't fully utilize a GPU.
 * *Concurrency:* Enables multiple applications or users to access the GPU simultaneously.
 * *Broad Compatibility:* Works with almost all NVIDIA GPU architectures.
@@ -210,6 +211,7 @@ The GPU scheduler allocates time slices to each process. At the end of a time sl
 * *Simple to Implement (in Kubernetes):* Can be configured using the NVIDIA GPU operator and device plugin.
 
 *Cons:*
+
 * *No Memory or Fault Isolation:* A crash or misbehaving task can affect all other tasks sharing the GPU.
 * *Potential Latency/Overhead:* Context switching introduces overhead, which can impact latency-sensitive applications.
 * *Resource Starvation:* Without careful management, some tasks might get more GPU time than others.
@@ -224,6 +226,7 @@ MIG is a hardware-based GPU partitioning feature (NVIDIA Ampere architecture and
 The physical GPU is divided into independent "MIG slices" at the hardware level. Each MIG instance acts as a fully functional, smaller GPU.
 
 *Pros:*
+
 * *Hardware Isolation:* Provides strong memory and fault isolation between instances.
 * *Predictable Performance:* Each instance has dedicated resources, offering consistent and predictable performance.
 * *Optimized Resource Utilization:* Efficiently shares GPU resources among multiple users and workloads with varying requirements.
@@ -231,6 +234,7 @@ The physical GPU is divided into independent "MIG slices" at the hardware level.
 * *Enhanced Security:* Hardware isolation prevents potential data leaks between instances.
 
 *Cons:*
+
 * *Hardware Requirement:* Only supported on NVIDIA Ampere architecture and newer (A100, H100, etc.).
 * *Coarse-Grained Control:* Partitioning is based on predefined MIG profiles, which might not perfectly align with every workload's exact needs.
 * *Fixed Resource Allocation:* Once an MIG instance is created, its resources are fixed.
@@ -245,11 +249,13 @@ NVIDIA MPS is a CUDA feature that allows multiple CUDA applications to run concu
 An MPS server process manages all client CUDA applications, handling the scheduling and execution of kernels from multiple clients on the GPU. This reduces context switching overhead.
 
 *Pros:*
+
 * *Improved GPU Utilization:* Allows kernels and memory copy operations from different processes to overlap.
 * *Reduced Overhead:* Minimizes context switching compared to default time-slicing.
 * *Concurrent Execution:* Enables multiple CUDA applications to run in parallel on the same GPU.
 
 *Cons:*
+
 * *No Memory Protection/Error Isolation:* Similar to time-slicing, a misbehaving client can impact others.
 * *Limited to CUDA Applications:* Primarily designed for CUDA workloads.
 * *Compatibility:* Combining MPS with MIG is currently not supported by the NVIDIA GPU operator.
@@ -260,11 +266,13 @@ An MPS server process manages all client CUDA applications, handling the schedul
 By default, Kubernetes workloads are given exclusive access to their allocated GPUs. If a pod requests one GPU, it gets the entire physical GPU.
 
 *Pros:*
+
 * *Simplicity:* Easiest to configure and manage.
 * *Maximum Performance for Single Workload:* A single workload has dedicated access to the entire GPU.
 * *Full Isolation (at the GPU level):* Each workload runs on its own GPU.
 
 *Cons:*
+
 * *Low GPU Utilization:* If a workload doesn't fully saturate the GPU, significant computational power is wasted.
 * *Higher Costs:* Requires more GPUs to run multiple smaller workloads concurrently.
 * *Inefficient for Small Workloads:* Not suitable for many tasks that could easily share a GPU.

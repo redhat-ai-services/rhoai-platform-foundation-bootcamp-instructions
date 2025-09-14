@@ -6,7 +6,7 @@
 
 This lab guide uses the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator on OpenShift] and demonstrates the configuration needed to enable GPU *time slicing*. This approach improves GPU utilization by allowing multiple workloads to share a single GPU.
 
-The final configuration will use *time slicing* because the *NVIDIA A10G Tensor Core GPU*, which is part of the provisioned link:https://aws.amazon.com/ec2/instance-types/g5/[Amazon EC2 G5 Instance], does *not* support Multi-Instance GPU (MIG). 🥴
+The final configuration will use *time slicing* because the *NVIDIA A10G Tensor Core GPU*, which is part of the provisioned link:https://aws.amazon.com/ec2/instance-types/g5/[Amazon EC2 G5 Instance], does *not* support Multi-Instance GPU (MIG). 🥴 +
 However MIG is playing acrucial role in productive enviroenments as explained in the introduction. Therfore the theoretical approach to enable MIG is exaplained in this Guide.
 
 In this lab, each worker node will be provisioned with a single NVIDIA A10G Tensor Core GPU. The created time slices will then be used to simulate a scenario of *fair resource sharing* with Kueue.
@@ -44,7 +44,10 @@ oc adm taint nodes <your-gpu-node-name> nvidia.com/gpu=Exists:NoSchedule
 === Node Feature Discovery (NFD) Operator
 OpenShift (and Kubernetes in general) is designed to be hardware-agnostic. It doesn't inherently know what specific hardware components (like NVIDIA GPUs) are present on its nodes. The NFD Operator fills this gap.
 
-* Standardized Labeling: Once NFD discovers a specific hardware feature, like an NVIDIA GPU, it applies a standardized Kubernetes label to that node. For NVIDIA GPUs, the most common label is ``feature.node.kubernetes.io/pci-10de.present=true``. ``feature.node.kubernetes.io/:`` This is a standard prefix for NFD-generated labels. ``pci-10de: 10de`` is the PCI vendor ID for NVIDIA Corporation. This uniquely identifies NVIDIA hardware. ``.present=true:`` Indicates that a device with this PCI ID is present on the node.
+* Standardized labeling: Once NFD discovers a specific hardware feature, like an NVIDIA GPU, it applies a standardized Kubernetes label to that node. For NVIDIA GPUs, the most common label is `feature.node.kubernetes.io/pci-10de.present=true`, where:
+** `feature.node.kubernetes.io/` - a standard prefix for NFD-generated labels. 
+** `pci-10de` - the PCI vendor ID for NVIDIA Corporation ("10de"). This uniquely identifies NVIDIA hardware. 
+** `.present=true` - indicates that a device with this PCI ID is present on the node.
 
 === NVIDIA GPU Operator
 The NVIDIA GPU Operator is designed to be intelligent and efficient. It doesn't want to deploy its heavy components (like the NVIDIA driver daemonset, container toolkit, device plugin) on every node in your cluster, especially if most of your nodes don't have GPUs.
