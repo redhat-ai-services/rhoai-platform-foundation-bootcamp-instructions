@@ -57,7 +57,7 @@ The NVIDIA GPU Operator is designed to be intelligent and efficient. It doesn't 
 
 As stated in the official <<documentation>>:
 
-[quote, "Red Hat", "OpenShift Documentation, Version 4.17"]
+[quote, "Red Hat", "OpenShift Documentation, Version 4.19"]
 ____
 In addition, the worker nodes can host one or more GPUs, but they must be of the same type. For example, a node can have two NVIDIA A100 GPUs, but a node with one A100 GPU and one T4 GPU is not supported. The NVIDIA Device Plugin for Kubernetes does not support mixing different GPU models on the same node.
 ____
@@ -536,4 +536,4 @@ oc delete project granite
 [bibliography]
 == References
 
-* [[[documentation]]] Red Hat. _OpenShift Documentation_. Version 4.17. Available from: https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/hardware_accelerators/nvidia-gpu-architecture#:~:text=In%20addition%2C%20the,the%20same%20node
+* [[[documentation]]] Red Hat. _OpenShift Documentation_. Version 4.19. Available from: https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/hardware_accelerators/nvidia-gpu-architecture#nvidia-gpu-bare-metal_nvidia-gpu-architecture#:~:text=In%20addition%2C%20the,the%20same%20node
