@@ -181,12 +181,12 @@ NVIDIA's Multi-Instance GPU (MIG) slicing is a powerful feature that allows you 
 * Fine-Grained Resource Allocation and Flexibility
 * Simplified Management in Containerized Environments (e.g., Kubernetes)
 
-==== *ConfigMap for MIG*
+==== ConfigMap for MIG
 Create a `ConfigMap` to specify the MIG configuration:
 
 * Create a `yaml` file to define how you want to slice your GPUs.
-* This `ConfigMap` *must be named `custom-mig-config`* and *reside in the `nvidia-gpu-operator` namespace*.
-* You can define the mig devices in a custom config. But use a https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html#a100-mig-profiles[supported configuration].
+* This `ConfigMap` ⚡ *must be named* `custom-mig-config` and *reside in* the `nvidia-gpu-operator` namespace ⚡.
+* You can define the mig devices in a custom config. Always make sure to use a https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html#a100-mig-profiles[supported configuration].
 
 [source,yaml]
 ----
@@ -212,7 +212,7 @@ data:
 ----
 
 ==== Patch for `ClusterPolicy`
-* You need to modify the ``gpu-cluster-policy``` within the ``nvidia-gpu-operator``` namespace to point to your ``custom-mig-config``.
+* You need to modify the ``gpu-cluster-policy`` within the ``nvidia-gpu-operator`` namespace to point to your ``custom-mig-config``.
 * This is typically accomplished with a Kustomize patch.
 
 1. If the custom configuration specifies more than one instance profile, set the strategy to `mixed`:
@@ -248,7 +248,8 @@ oc label nodes <node-name> nvidia.com/mig.config=custom-mig --overwrite
 In this section we will configure the GPU Operator for our lab!
 ====
 
-NVIDIA's time slicing is a powerful feature that allows you to share a single GPU among multiple processes, where each process gets a slice of time to access the GPU's resources. This is particularly useful for running many lightweight, concurrent workloads on a single GPU. It improves utilization and throughput without requiring multiple GPUs or a complex resource management system.
+NVIDIA's time slicing is a powerful feature that allows you to share a single GPU among multiple processes, where each process gets a slice of time to access the GPU's resources. +
+This is particularly useful for running many lightweight, concurrent workloads on a single GPU. It improves utilization and throughput without requiring multiple GPUs or a complex resource management system.
 
 * Shared GPU Resources: Multiple workloads share the same physical GPU, increasing utilization and efficiency.
 * Simpler Configuration: Compared to MIG, time slicing is easier to set up and manage, as it doesn't require partitioning the GPU at the hardware level.
@@ -256,9 +257,10 @@ NVIDIA's time slicing is a powerful feature that allows you to share a single GP
 * Dynamic Resource Sharing: The GPU scheduler dynamically allocates GPU time to each process, ensuring fair access.
 
 ==== ConfigMap for Time Slicing
-Create a YAML file to define how you want to slice your GPUs.
-This `ConfigMap` can be named anything, but it must reside in the nvidia-gpu-operator namespace.
-You need to define the number of replicas (slices) for each GPU model.
+Create a YAML file to define how you want to slice your GPUs. +
+This `ConfigMap` can be named anything, but it must reside in the `nvidia-gpu-operator` namespace.
+
+In this configuration, we need to define the number of replicas (slices) for each GPU model.
 
 [.console-input]
 [source,yaml]
@@ -300,6 +302,7 @@ oc patch clusterpolicy gpu-cluster-policy \
   -n nvidia-gpu-operator --type merge \
   -p '{"spec": {"devicePlugin": {"config": {"name": "device-plugin-config"}}}}'
 ----
+
 ==== Label the nodes
 
 After patching the ClusterPolicy, you need to label the nodes that have the GPUs you want to time-slice.
