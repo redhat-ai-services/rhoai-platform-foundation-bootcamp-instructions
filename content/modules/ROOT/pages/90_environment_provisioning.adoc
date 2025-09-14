@@ -51,7 +51,7 @@ git checkout feature/gpu-as-a-service
 
 2. Follow the instructions provided in the xref:07_installation.adoc#_bootstrap_the_gpu_cluster[Bootstrap the GPU Cluster] document to complete the installation process.
 
-3. Select the option with `rhoai-satable-2.22-aws-gpu-time-sliced`
+3. Select the option with `rhoai-stable-2.22-aws-gpu-time-sliced`
 
 [.console-input]
 [source,bash]
