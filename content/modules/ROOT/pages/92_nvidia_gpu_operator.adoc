@@ -69,15 +69,12 @@ Your cluster can still have a mix of these node types.
 The maximum number of GPUs per Node is limited by the number of https://www.hp.com/us-en/shop/tech-takes/what-are-pcie-slots-pc[PCI slots] within the Mainboard of the Node.
 
 [IMPORTANT] 
-.NVIDIA Network Operator
-[%collapsible]
 ====
 *DO NOT DEPLOY THE NVIDIA NETWORK OPERATOR IN THIS LAB!*
-[NOTE] 
-[%collapsible]
-====
 
-====
+.NVIDIA Network Operator
+[%collapsible]
+=====
 
 [discrete]
 === NVIDIA Network Operator
@@ -92,6 +89,7 @@ The NVIDIA Network Operator works in close conjunction with the NVIDIA GPU Opera
 
 * *High-speed secondary networks:* Providing dedicated network interfaces for application traffic, separate from the OpenShift cluster's primary network. This is crucial for performance-sensitive workloads.
 
+=====
 ====
 
 == Enable Time Slicing by configuring NVIDIA GPU Operator

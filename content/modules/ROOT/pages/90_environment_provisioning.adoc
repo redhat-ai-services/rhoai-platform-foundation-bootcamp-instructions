@@ -149,8 +149,10 @@ Follow the instructions on the following page: https://docs.nvidia.com/datacente
 '''
 
 [NOTE]
-[%collapsible]
 ====
+.In case of (expected issue) check following steps to resolve
+[%collapsible]
+=====
 [discrete]
 == Expected issue and resolution [[workaround]]
 
@@ -180,4 +182,5 @@ image::ConfirmdeleteRHOAI.png[]
 
 7.  After a few minutes, refresh the OpenShift console. The OpenShift AI Operator should now be visible under Installed Operators in the OpenShift console.
 
+=====
 ====

@@ -93,9 +93,10 @@ For `ibm-granite/granite-3.3-2b-instruct`, you would look for its `config.json` 
 ====
 
 [NOTE]
+====
 .*Math behind the exact estimation of the KV Cache size*
 [%collapsible]
-====
+=====
 Let's break down the estimated memory usage for `ibm-granite/granite-3.3-2b-instruct`.
 
 [discrete]
@@ -178,12 +179,15 @@ The KV Cache size scales linearly with the sequence length. While the model supp
 ** At a common context (e.g., 2,048 tokens): ~0.16 GB per request.
 
 As you can see, the KV Cache for a single max-length request is twice the size of the model weights.
+=====
 ====
 
 A common way to calculate the needed KV Cache are calculators like the https://huggingface.co/spaces/gaunernst/kv-cache-calculator[gaunernst/kv-cache-calculator] from Hugging Face.
 
 == GPU Optimization
 Our previous example showed a vRAM requirement of at least *16 GB* for a single user at maximum context length. Assuming we target *20 GB* of vRAM to support a few concurrent queries, an *H100 GPU* with *80 GB* of vRAM can easily accommodate this model. However, this leaves a significant portion of GPU capacity unused, leading to a low return on investment (ROI). To boost GPU utilization, we can leverage the *H100's* slicing capabilities. The rest of this course will demonstrate how to split the GPU into Multi-Instance GPU (MIG) instances, allowing us to serve up to four models of the same size and configuration concurrently.
+
+[TIP]
 See also the https://github.com/rh-aiservices-bu/gpu-partitioning-guide[GPU partitioning guide] developed by the `rh-aiservices-bu`.
 
 [NOTE]
