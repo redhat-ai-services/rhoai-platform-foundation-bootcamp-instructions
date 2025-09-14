@@ -7,7 +7,7 @@
 This lab guide uses the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator on OpenShift] and demonstrates the configuration needed to enable GPU *time slicing*. This approach improves GPU utilization by allowing multiple workloads to share a single GPU.
 
 The final configuration will use *time slicing* because the *NVIDIA A10G Tensor Core GPU*, which is part of the provisioned link:https://aws.amazon.com/ec2/instance-types/g5/[Amazon EC2 G5 Instance], does *not* support Multi-Instance GPU (MIG). 🥴 +
-However MIG is playing acrucial role in productive enviroenments as explained in the introduction. Therfore the theoretical approach to enable MIG is exaplained in this Guide.
+However, as **MIG is playing a crucial role in productive environments**, this guide explains the theoretical approach to enable MIG configuration.
 
 In this lab, each worker node will be provisioned with a single NVIDIA A10G Tensor Core GPU. The created time slices will then be used to simulate a scenario of *fair resource sharing* with Kueue.
 
