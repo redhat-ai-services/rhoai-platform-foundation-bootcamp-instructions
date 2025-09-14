@@ -395,7 +395,7 @@ oc get node --selector=nvidia.com/gpu.product=NVIDIA-A10G-SHARED -o json \
 
 == Configure Hardware Profile in OpenShift AI
 [WARNING]
-.Timeslicing due to resource constraints
+.Timeslicing due to hardware resource constraints
 ====
 The configuration can be done even without MIG configured within the GPU Operator. But the workload will not be able to be scheduled by the OpenShift scheduler and the Pod will stay pending afterwards.
 ====
@@ -404,15 +404,17 @@ MIG technology enables a single physical GPU to be logically partitioned into mu
 
 Complementing this, Taints and Tolerations are fundamental Kubernetes primitives that ensure intelligent workload scheduling. GPU-enabled nodes can be "tainted" to prevent general workloads from being scheduled on them. Correspondingly, Accelerator/Hardware Profiles automatically apply "tolerations" to AI/ML workloads, allowing them to be scheduled exclusively on nodes possessing the required specialized hardware.
 
-=== Create Hardware Profiles In RHOAI
-[TIP]
-.Timeslicing due to resource constraints
+=== Create Hardware Profiles in RHOAI
+
+[WARNING]
+.Timeslicing due to hardware resource constraints
 ====
 This can be done even without MIG enabled. But the created Pods will not be able to be scheduled!
 ====
 
-Create Hardware Profiles for each MIG Type created beforehand. Configure Tolerations in case Taints are configured and the GPU-enabled Pods should be immune to them.
-Use the resource lable and disblay name `nvidia.com/mig-2g.20gb` inside the section *Resource requests and limits*.
+* Hardware Profiles for each MIG Type have to be created beforehand.
+* In case Taints are configured, add the Tolerations so that the GPU-enabled pods can be immune to theme.
+* Use the resource label and display name `nvidia.com/mig-2g.20gb` inside the section *Resource requests and limits*.
 
 [.bordershadow]
 image::92-create-hardware-profile.png[]
@@ -423,10 +425,10 @@ image::92-resource-request-hw-profile.png[]
 [WARNING]
 .Accelerator Profiles are deprecated 
 ====
-Accelerator Profiles will be replaced by Hardware Profiles. They are more flexible and should be the preferred profile.
+`AcceleratorProfiles` will be replaced by `HardwareProfiles`. They are more flexible and should be the preferred profile.
 ====
 
-Thanks to the Cloud Native approach of RHOAI the profile can be created as `yaml` file as well to better integrate it into a GitOps approach:
+Thanks to the Cloud Native approach of RHOAI, the profile can be created as `yaml` file as well to better integrate it into a GitOps approach:
 
 [source,yaml]
 ----
@@ -466,44 +468,44 @@ spec:
 ----
 
 == Verify the Configuration
-The Blog Articel https://developers.redhat.com/articles/2025/01/30/build-and-deploy-modelcar-container-openshift-ai?source=sso#[Build and deploy a ModelCar container in OpenShift AI] demonstrates how to build a ModelCar Container and discusses pros and cons about the ModelCar Approach.
-Use the available ModelCar `oci://quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-2b-instruct` to deploy a Model using OpenShift AI.
+The Blog article https://developers.redhat.com/articles/2025/01/30/build-and-deploy-modelcar-container-openshift-ai?source=sso#[Build and deploy a ModelCar container in OpenShift AI] demonstrates how to build a ModelCar Container and discusses pros and cons about the ModelCar Approach. +
+Use the ModelCar available at `oci://quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-2b-instruct` to deploy a Model using OpenShift AI.
 
 === Create Models
-In this section two models will be deployed. One will use the `nvidia.com/gpu` accelerator. The other model will use the `nvidia.com/mig-2g.20gb` Accelerator. 
+In this section two models will be deployed. One will use the `nvidia.com/gpu` accelerator, whike the other model will use the `nvidia.com/mig-2g.20gb` accelerator. 
 
-1. Create a new Project in OpenShift AI:
+. Create a new Project in OpenShift AI:
 +
 image::92-rhoai-project-gpuaas.png[]
 
-2. Create a `Data Connection` within the `Grantie` Project:
+. Create a `Data Connection` within the `granite` Project:
 +
 image::92-create-data-connection.png[]
 
-3. Deploy a Model within the `grantite` project:
+. Deploy a Model within the `granite` project:
 +
 image::92-create-model.png[]
 
-4. Deploy a Model within the `grantite` project using the new `Hardware Profile` created beforehand `small`:
+. Deploy a Model within the `granite` project using the new `HardwareProfile` created beforehand `small`:
 +
 [CAUTION]
-.Pod will stay Pending forever
+.Pod will stay `Pending` forever
 ====
-The Hardware Profiles can be created even when the resources are not present in the Cluster. The OpenShift Schduler will not be able to schedule the Pod!
+The Hardware Profiles can be created even when the resources are not present in the Cluster. The OpenShift scheduler will not be able to schedule the Pod!
 ====
 +
 image::92-create-model-mig.png[]
 
 === Inspect the resource requests
-The Model `granite-3.3-2b-instruct` should work using the `nvidia-com/gpu` idientifier whhereras the Model `granite-3.3-2b-instruct-mig` will stay pending.
+The Model `granite-3.3-2b-instruct` should work using the `nvidia-com/gpu` idientifier whereas the Model `granite-3.3-2b-instruct-mig` will stay pending.
 
 [WARNING]
-.Timeslicing due to resource constraints
+.Timeslicing due to hardware resource constraints
 ====
-Created resources will contain the resource `nvidia.com/mig-2g.20gb: 1` which is not present in the Cluster. The OpenShift scheduler will not be able to schdule the `Pods`.
+Created resources will contain the resource `nvidia.com/mig-2g.20gb: "1"`, which is not present in the Cluster. The OpenShift scheduler will not be able to schdule the `pods`.
 ====
 
-While inspecting the resource which will be created RHOAI while serving a Model the `spec.containers[0].resources.requests` will use the resource `nvidia.com/mig-2g.20gb` which is not present in the Cluster.
+While inspecting the resource (which will be created RHOAI while serving a Model) the `spec.containers[0].resources.requests` will use the resource `nvidia.com/mig-2g.20gb` which is not present in the cluster.
 
 [.console-input]
 [source,bash]
@@ -523,7 +525,7 @@ The output will look like the following:
         memory: 4Gi
         nvidia.com/mig-2g.20gb: "1"
 ----
-As explained beforehand when applying the MIG configuratiuon within a Cluster which does not have an accelerator type `nvidia.com/mig-2g.20gb` the Scheduler will not be able to be scheduled. The Pod will stay in Pending.
+As explained earlier, when applying the MIG configuratiuon within a Cluster which does not have an accelerator type (i.e. `nvidia.com/mig-2g.20gb`) the scheduler will not be able to be scheduled, therefore affected pods will stay in `Pending` state.
 
 [.console-input]
 [source,bash]
