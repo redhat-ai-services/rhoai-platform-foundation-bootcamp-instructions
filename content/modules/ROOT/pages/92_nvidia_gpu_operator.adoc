@@ -393,6 +393,8 @@ oc get node --selector=nvidia.com/gpu.product=NVIDIA-A10G-SHARED -o json \
   "nvidia.com/vgpu.present": "false",
 ----
 
+As expected we see the label declaring 8 replicas, as defined in our configuration.
+
 == Configure Hardware Profile in OpenShift AI
 [WARNING]
 .Timeslicing due to hardware resource constraints
