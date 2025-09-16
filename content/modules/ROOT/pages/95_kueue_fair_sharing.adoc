@@ -222,7 +222,7 @@ oc get cq
 +
 You should see `team-a-cq`, `team-b-cq`, and `shared-cq` listed with a status of `Active`.
 
-=== Step 2: Deploy the Low-Priority Workload (Team B)
+=== Deploy the Low-Priority Workload (Team B)
 
 Now, acting as **Team B**, we will submit a `RayCluster` job. This job requests 4 CPU cores, which consumes the entire shared quota.
 
