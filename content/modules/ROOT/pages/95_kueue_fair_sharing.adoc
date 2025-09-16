@@ -350,7 +350,8 @@ We will watch as Kueue automatically evicts Team B's workload to make room for T
 oc get workload -A -w
 ----
 +
-You will see the `raycluster-dev` workload in `team-b` switch its `ADMITTED` status from `True` to `False`. Shortly after, the `raycluster-prod` workload in `team-a` will switch its `ADMITTED` status to `True`.
+You will see that the `raycluster-dev` workload in `team-b` switch its `ADMITTED` status from `True` to `False`. +
+Shortly after, the `raycluster-prod` workload in `team-a` will switch its `ADMITTED` status to `True`.
 
 . Check the pods in both namespaces.
 +
