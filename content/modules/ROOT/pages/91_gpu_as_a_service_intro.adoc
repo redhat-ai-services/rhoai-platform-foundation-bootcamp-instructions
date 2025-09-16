@@ -323,7 +323,8 @@ It's like carving up a very powerful cake into several smaller, individual slice
 
 The GPU cannot be split arbitrarily; there are supported MIG Profiles which differ by GPU type. For the H100, for example, a valid configuration is 3x `MIG 3g.40gb` and 1x `MIG 1g.20gb` (refer to the official https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html#h100-mig-profiles[H100 MIG Profiles] documentation for all options). With a configuration like this, multiple models could be served in parallel, with smaller slices left over for experimentation.
 
-At the moment, the following GPUs are supported: `A30`, `A100`, `H100`, `H200`, `GH200`, and `B200`. To change the MIG profiles, the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator for OpenShift] `ClusterPolicy` needs to be configured.
+At the moment, the following GPUs are supported: `A30`, `A100`, `H100`, `H200`, `GH200`, and `B200`. +
+To change the MIG profiles, the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/introduction.html[NVIDIA GPU Operator for OpenShift] `ClusterPolicy` needs to be configured.
 
 == Fair resource sharing using Kueue
 
