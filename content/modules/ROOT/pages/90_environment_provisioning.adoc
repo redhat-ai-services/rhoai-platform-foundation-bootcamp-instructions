@@ -12,7 +12,7 @@ This lab provides instructions for provisioning a GPU environment on AWS using N
 
 2. Repository Cloning: Clone the ai-accelerator Git repository as described below.
 
-3. Bootstrap Script: Run the `./bootstrap.sh` script and select the `rhoai-satable-2.22-aws-gpu-time-sliced` option to set up the OpenShift cluster with GPU support.
+3. Bootstrap Script: Run the `./bootstrap.sh` script and select the `rhoai-stable-2.22-aws-gpu-time-sliced` option to set up the OpenShift cluster with GPU support.
 
 4. Monitoring: Enable GPU monitoring by creating and applying a specific `ConfigMap` to the openshift-monitoring namespace. This will add a https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/enable-gpu-monitoring-dashboard.html#configuring-the-nvidia-dcgm-exporter-dashboard[NVIDIA DCGM Exporter Dashboard] to the OpenShift console.
 
