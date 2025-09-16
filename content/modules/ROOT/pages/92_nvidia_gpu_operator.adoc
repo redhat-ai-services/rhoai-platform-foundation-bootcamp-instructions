@@ -319,7 +319,7 @@ oc label --overwrite node \
 [NOTE]
 .Label Selector for Nodes
 ====
-The selector value ``nvidia.com/gpu.product=A100-SXM4-40GB`` must match the GPU product name as labeled by the GPU Operator's Node Feature Discovery (NFD) component.
+The selector value ``nvidia.com/gpu.product=NVIDIA-A10G-SHARED`` must match the GPU product name as labeled by the GPU Operator's Node Feature Discovery (NFD) component.
 ====
 
 ==== Verify Time Slicing was enabled successfully
