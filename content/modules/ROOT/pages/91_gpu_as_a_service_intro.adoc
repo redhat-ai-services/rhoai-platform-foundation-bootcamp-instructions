@@ -18,7 +18,7 @@ In some of the previous sections, we mentioned vLLM (Red Hat Inference Server) a
 === Model Weights
 The `granite-3.3-2b-instruct` model has 2.53 billion parameters. For cleaner calculations, we will approximate this as 2.5B. The memory usage for model weights depends on the data type (precision) you load it in:
 
-* *FP16 (Half Precision) or BF16 (BFloat16):* Each parameter uses 2 bytes. This is the most common and recommended precision for inference to save memory while maintaining good performance.
+* *FP16 (Half Precision) or BF16 (bfloat16):* Each parameter uses 2 bytes. This is the most common and recommended precision for inference to save memory while maintaining good performance.
 
 [latexmath]
 ++++
