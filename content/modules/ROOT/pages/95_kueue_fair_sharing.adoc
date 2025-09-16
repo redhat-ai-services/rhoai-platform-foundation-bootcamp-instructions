@@ -386,7 +386,9 @@ Events:
 
 == Conclusion
 
-You have successfully demonstrated a sophisticated resource management scenario using Kueue. You configured a shared resource cohort for two teams with different priorities and resource requirements. Most importantly, you verified that Kueue's preemption mechanism works as expected, allowing a high-priority workload (`team-a`) to claim resources from a running, lower-priority workload (`team-b`), ensuring that business-critical jobs are not starved of resources.
+* You have successfully demonstrated a sophisticated resource management scenario using Kueue. 
+* You configured a shared resource cohort for two teams with different priorities and resource requirements. 
+* Most importantly, you verified that Kueue's preemption mechanism works as expected, allowing a high-priority workload (`team-a`) to claim resources from a running, lower-priority workload (`team-b`), ensuring that business-critical jobs are not starved of resources.
 
 This powerful capability is crucial for managing expensive and scarce resources like GPUs efficiently and fairly in a multi-tenant AI/ML platform.
 
