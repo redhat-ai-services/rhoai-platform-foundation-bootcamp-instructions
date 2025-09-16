@@ -134,7 +134,7 @@ kueue-controller-xxxxxx-yyyyy            1/1     Running   0          2m
 [.console-input]
 [source,bash]
 ----
-cat <<EOF | kubectl apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: kueue.openshift.io/v1
 kind: Kueue
 metadata:
