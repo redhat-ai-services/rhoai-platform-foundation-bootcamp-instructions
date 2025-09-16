@@ -228,6 +228,7 @@ Now, acting as **Team B**, we will submit a `RayCluster` job. This job requests 
 
 . Create a file named `team-b-job.yaml` with the following content.
 +
+[.console-input]
 [source,yaml,title="team-b-job.yaml"]
 ----
 apiVersion: ray.io/v1
@@ -265,6 +266,7 @@ spec:
 ----
 . Apply the manifest to create the `RayCluster`.
 +
+[.console-input]
 [source,bash]
 ----
 oc apply -f team-b-job.yaml
@@ -273,11 +275,13 @@ oc apply -f team-b-job.yaml
 +
 --
 Check the Kueue workload status. The `ADMITTED` column should be `True`.
+[.console-input]
 [source,bash]
 ----
 oc get workload -n team-b
 ----
 Check the pods. They should be in the `Running` state.
+[.console-input]
 [source,bash]
 ----
 oc get pods -n team-b
@@ -292,6 +296,7 @@ Next, acting as **Team A**, we will submit a higher-priority `RayCluster` that r
 
 . Create a file named `team-a-job.yaml` with the following content.
 +
+[.console-input]
 [source,yaml,title="team-a-job.yaml"]
 ----
 apiVersion: ray.io/v1
@@ -333,6 +338,7 @@ spec:
 ----
 . Apply the manifest.
 +
+[.console-input]
 [source,bash]
 ----
 oc apply -f team-a-job.yaml
@@ -345,6 +351,7 @@ We will watch as Kueue automatically evicts Team B's workload to make room for T
 
 . Watch the status of the workloads in both namespaces. The change should happen within a minute.
 +
+[.console-input]
 [source,bash]
 ----
 oc get workload -A -w
@@ -357,11 +364,13 @@ Shortly after, the `raycluster-prod` workload in `team-a` will switch its `ADMIT
 +
 --
 Team B's pods should now be in the `Terminating` state.
+[.console-input]
 [source,bash]
 ----
 oc get pods -n team-b
 ----
 Team A's pods should be in the `ContainerCreating` or `Running` state.
+[.console-input]
 [source,bash]
 ----
 oc get pods -n team-a
@@ -370,6 +379,7 @@ oc get pods -n team-a
 
 . To see the explicit preemption message, describe Team B's workload.
 +
+[.console-input]
 [source,bash]
 ----
 oc describe workload -n team-b raycluster-dev
@@ -377,6 +387,7 @@ oc describe workload -n team-b raycluster-dev
 +
 Look for the `Events` section at the bottom. You will see a clear message stating that the workload was **Evicted** because it was preempted by the higher-priority workload.
 +
+[.console-input]
 [source,text]
 ----
 Events:
