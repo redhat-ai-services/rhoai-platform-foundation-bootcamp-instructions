@@ -28,22 +28,13 @@ If you encounter an issue where the OpenShift AI Operator not being installed se
 Follow the instructions in the xref:05_environment_provisioning.adoc[RHOAI Foundation Bootcamp: Provisioning a GPU Environment] to set up your AWS environment.
 
 == Clone the RHOAI GitHub Repository
-Clone the RHOAI GitHub repository to your local machine: 
+Clone the RHOAI GitHub repository to your local machine and checkout `feature/gpu-as-a-service ai-accelerator-gpu`: 
 
 [.console-input]
 [source,bash]
 ----
 git clone git@github.com:shebistar/ai-accelerator.git --single-branch --branch feature/gpu-as-a-service ai-accelerator-gpu   # TODO: Change to official repo when available
 cd ai-accelerator
-----
-
-== Temporary Step: change to the feature/gpu-as-a-service branch
-Checkout the `feature/gpu-as-a-service` branch to access the necessary configurations for GPU support.
-
-[.console-input]
-[source,bash]
-----
-git checkout feature/gpu-as-a-service
 ----
 
 == Execute the bootstrap script
