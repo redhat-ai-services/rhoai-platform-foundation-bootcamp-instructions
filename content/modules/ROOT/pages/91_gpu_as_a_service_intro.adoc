@@ -34,6 +34,21 @@ The `granite-3.3-2b-instruct` model has 2.53 billion parameters. For cleaner cal
 
 vLLM typically defaults to FP16 (or `bfloat16` if supported by the GPU) for an optimal balance of speed and memory. Therefore, the model weights will consume approximately **5 GB**. The total memory footprint will be significantly larger once the KV Cache is accounted for, as we will see next.
 
+[TIP]
+.Is the `bfloat16` same as `float16`, or this is some new number format?  
+====
+.Brain Floating Point format explanation
+[%collapsible]
+=====
+
+`bfloat16` refer to the Brain Floating Point format 🤯, a 16-bit floating-point data type used for deep learning applications.
+
+* `float16` (FP16) has higher precision (10-bit mantissa) but a much smaller numerical range, with only a 5-bit exponent.
+* `bfloat16` offers a wider numerical range than `float16` by having the same 8-bit exponent as FP32, but with less precision (7-bit mantissa). +
+This makes `bfloat16` more suitable for deep learning training due to its ability to handle larger values and prevent numerical instability without requiring extensive gradient scaling that `float16` often needs.
+=====
+====
+
 === KV Cache (Key-Value Cache)
 The KV Cache memory usage is dynamic and depends on several factors:
 
