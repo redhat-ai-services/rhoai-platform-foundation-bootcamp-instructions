@@ -203,6 +203,7 @@ A common way to calculate the needed KV Cache are calculators like the https://h
 Our previous example showed a vRAM requirement of at least *16 GB* for a single user at maximum context length. Assuming we target *20 GB* of vRAM to support a few concurrent queries, an *H100 GPU* with *80 GB* of vRAM can easily accommodate this model. However, this leaves a significant portion of GPU capacity unused, leading to a low return on investment (ROI). To boost GPU utilization, we can leverage the *H100's* slicing capabilities. The rest of this course will demonstrate how to split the GPU into Multi-Instance GPU (MIG) instances, allowing us to serve up to four models of the same size and configuration concurrently.
 
 [TIP]
+[TIP]
 See also the https://github.com/rh-aiservices-bu/gpu-partitioning-guide[GPU partitioning guide] developed by the `rh-aiservices-bu`.
 
 [NOTE]
