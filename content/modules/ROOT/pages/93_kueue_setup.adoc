@@ -27,6 +27,26 @@ oc adm taint nodes <your-gpu-node-name> nvidia.com/gpu=Exists:NoSchedule
 == Install Red Hat build of Kueue Operator
 Install the https://docs.redhat.com/en/documentation/red_hat_build_of_kueue/1.0[Red Hat build of Kueue Operator].
 
+
+[NOTE]
+====
+Note that the snippets in following section always starts with `cat <<EOF | oc apply -f -` and end with `EOF` line. 
+
+Copying everything from the snippet to the terminal will apply the content, without a need to create actual yaml file on your localhost. +
+If you want to save these, actual yaml files do not need above mentioned lines, so make sure to remove them.
+
+.Snippet with yaml file content
+[%collapsible]
+=====
+[source,bash]
+----
+cat <<EOF | oc apply -f -
+<actual-yaml-file-content>
+EOF
+----
+=====
+====
+
 1. Create a new file named `kueue-namespace.yaml` with the following content to create the `openshift-kueue-operator` namespace with monitoring enabled:
 +
 [.console-input]
