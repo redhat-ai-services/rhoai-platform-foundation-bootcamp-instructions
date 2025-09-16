@@ -338,7 +338,7 @@ spec:
 oc apply -f team-a-job.yaml
 ----
 
-=== Step 4: Observe and Verify Preemption
+=== Observe and Verify Preemption
 
 This is the key part of the lab. We will watch as Kueue automatically evicts Team B's workload to make room for Team A's.
 
