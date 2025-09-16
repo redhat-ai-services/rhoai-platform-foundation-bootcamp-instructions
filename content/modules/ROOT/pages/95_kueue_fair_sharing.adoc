@@ -286,7 +286,7 @@ oc get pods -n team-b
 
 At this point, Team B's job has successfully claimed all 4 CPUs from the shared cohort.
 
-=== Step 3: Deploy the High-Priority Workload (Team A)
+=== Deploy the High-Priority Workload (Team A)
 
 Next, acting as **Team A**, we will submit a higher-priority `RayCluster` that requires a GPU and 4 CPU cores. Since the CPU pool is full, Kueue must preempt Team B's job.
 
