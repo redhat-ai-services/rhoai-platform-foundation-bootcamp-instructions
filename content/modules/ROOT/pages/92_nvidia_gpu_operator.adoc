@@ -31,7 +31,16 @@ The NFD Operator will add labels to the Nodes so the NVIDIA GPU Operator will in
 
 [NOTE]
 ====
-This was already done during the bootstrap process in the previous lab. If you need to reapply the taint, use the following command, replacing `<your-gpu-node-name>` with the actual name of your GPU node.
+To check current GPU nodes use following commands:
+
+[.console-input]
+[source,bash]
+----
+oc get nodes
+oc describe node/<your-gpu-node-name> | grep -A10 "Taints:"
+----
+
+Although, this was already be applied during the bootstrap process in the previous lab, if you need to re-apply the taint, use the following command, replacing `<your-gpu-node-name>` with the actual name of your GPU node.
 
 [.console-input]
 [source,bash]
