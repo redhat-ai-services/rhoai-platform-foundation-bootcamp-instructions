@@ -386,7 +386,7 @@ Events:
 ----
 
 
-== Conclusion
+== Conclusion 🎉
 
 * You have successfully demonstrated a sophisticated resource management scenario using Kueue. 
 * You configured a shared resource cohort for two teams with different priorities and resource requirements. 
