@@ -97,7 +97,7 @@ EOF
 [.console-input]
 [source,bash]
 ----
-cat <<EOF | kubectl apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
