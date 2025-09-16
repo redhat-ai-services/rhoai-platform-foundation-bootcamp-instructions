@@ -283,7 +283,10 @@ EOF
 ----
 ==== Patch for ClusterPolicy
 
-First modify the ``gpu-cluster-policy`` within the ``nvidia-gpu-operator`` namespace to point to the ``device-plugin-config``.
+We need to modify the ``gpu-cluster-policy`` within the ``nvidia-gpu-operator`` namespace:
+
+* to enable GPU Feature Discovery (component of the NVIDIA GPU Operator whose primary job is to discover the hardware features of the GPUs on a node and expose them as Kubernetes node labels)
+* to point to the ``device-plugin-config``.
 This tells the NVIDIA Device Plugin to use the configuration you've defined.
 Patch the ClusterPolicy so the Device Plugin uses the custom config map:
 
