@@ -182,7 +182,7 @@ Therefore, for comfortable serving of `ibm-granite/granite-3.3-2b-instruct` on v
 
 * A GPU with *16GB vRAM* *might* just barely fit if you strictly limit concurrency and context length.
 * *24GB vRAM* (like an RTX 3090/4090 or A100) offers much more headroom for the KV Cache to scale with concurrent requests and longer sequence lengths, making it a more suitable choice for production serving.
-* If you need to fit it on smaller GPUs (e.g., 12GB), you would need to use quantization. *8-bit quantization* would bring the model weights down to *2.5 GB*, and *4-bit quantization* would reduce them to approximately *1.25 GB*, leaving significantly more room for the KV Cache.
+* If you need to fit it on smaller GPUs (e.g., 12GB), you would need to use https://developers.redhat.com/articles/2025/08/18/optimizing-generative-ai-models-quantization#what_is_quantization_[quantization]. *8-bit quantization* would bring the model weights down to *2.5 GB*, and *4-bit quantization* would reduce them to approximately *1.25 GB*, leaving significantly more room for the KV Cache.
 
 [discrete]
 ==== Understanding the Trade-off: Context Length vs. Concurrency
