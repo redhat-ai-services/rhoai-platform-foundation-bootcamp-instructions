@@ -1,0 +1,401 @@
+= Lab Guide: Advanced GPU Quota Management and Preemption with Kueue
+:icons: font
+:stem: latexmath
+:icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
+
+This lab guide will walk you through setting up a sophisticated resource management scenario on OpenShift using Kueue. You will learn how to configure quotas for different teams sharing a common pool of CPU and GPU resources. The primary goal is to demonstrate how a high-priority team can preempt workloads from a lower-priority team to ensure guaranteed access to critical GPU and CPU resources.
+
+This lab uses a realistic setup with two teams, `team-a` (high-priority, requires GPUs) and `team-b` (low-priority, CPU-only), who are part of the same resource-sharing cohort.
+
+== Problem Statement
+
+In a multi-tenant cluster, managing shared resources like GPUs and CPUs presents two major challenges:
+
+1.  *Resource Contention:* When the cluster is under heavy load, critical, high-priority jobs (e.g., production model training for Team A) might get stuck waiting for resources that are currently being used by lower-priority, best-effort jobs (e.g., development experiments for Team B). This can delay critical business operations.
+2.  *Inefficient Resource Sharing:* Different teams often have varying resource needs. While it's easy to dedicate one GPU to Team A and another to Team B, it's difficult to enable dynamic borrowing. If Team A isn't using its resources, Team B should be able to leverage them temporarily without disrupting Team A's ability to reclaim them when needed.
+
+== Solution Overview
+
+This lab demonstrates a solution using Kueue to implement a robust system for quota management and preemption.
+
+1.  **Cohort-Based Sharing:** We will place both `team-a` and `team-b` into a single `Cohort`. This allows them to share a common pool of resources. A `shared-cq` (ClusterQueue) will define a nominal quota for shared resources like CPU and Memory.
+
+2.  **Dedicated and Borrowable Quotas:**
+    * `team-a-cq` will be configured with a nominal quota for expensive `nvidia.com/gpu` resources.
+    * `team-b-cq` will have no nominal quota for GPUs, meaning it cannot start GPU workloads on its own.
+    * Both teams will draw from the `shared-cq` for their CPU/Memory needs.
+
+3.  **Priority and Preemption:**
+    * `team-a` will be assigned a higher priority.
+    * The `team-a-cq` will be configured with a preemption policy of `borrowWithinCohort: LowerPriority`. This means if Team A submits a job and there are not enough free resources in the cohort, Kueue will find a lower-priority workload from another team in the same cohort (i.e., Team B) and preempt it to free up resources for Team A.
+
+By the end of this lab, you will have deployed a lower-priority `RayCluster` for Team B, watched it run successfully, and then deployed a higher-priority `RayCluster` for Team A that preempts Team B's workload to claim the necessary CPU and GPU resources.
+
+== Prerequisites
+
+1.  **OpenShift AI Operator:** Ensure the OpenShift AI Operator is installed on your cluster.
+2.  **GPU Worker Node:** You need at least one worker node with a minimum of 4 GPUs. On AWS, a `p3.8xlarge` instance or similar is suitable.
+3.  **GPU Node Taint:** The GPU node must be tainted to ensure only GPU-tolerant workloads are scheduled on it.
+
+[NOTE]
+====
+This was already done during the bootstrap process in the previous lab. If you need to reapply the taint, use the following command, replacing `<your-gpu-node-name>` with the actual name of your GPU node.
+
+[.console-input]
+[source,bash]
+----
+oc adm taint nodes <your-gpu-node-name> nvidia.com/gpu=Exists:NoSchedule
+----
+
+====
+
+== Lab Steps
+
+=== Configure the Multi-Team Environment
+
+First, we will apply all the necessary configuration objects to set up our environment. This includes creating namespaces, defining resource flavors for CPU and GPU, and configuring the Kueue queues with the correct quotas and preemption policies.
+
+. Apply the entire block of YAML below to your cluster. This single manifest creates all required `Namespaces`, `RoleBindings`, `ResourceFlavors`, and `ClusterQueues`.
+
++
+[.console-input]
+[source,yaml]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io-metadata.name: team-a
+    opendatahub.io/dashboard: "true"
+    kueue.openshift.io/managed: "true"
+  name: team-a
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: team-b
+    opendatahub.io/dashboard: "true"
+    kueue.openshift.io/managed: "true"
+  name: team-b
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: edit
+  namespace: team-a
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: team-a
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: edit
+  namespace: team-b
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: team-b
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: gpu-flavor
+spec:
+  nodeLabels:
+    nvidia.com/gpu.present: "true"
+  tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: shared-cq
+spec:
+  cohort: "team-ab"
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: "default-flavor"
+      resources:
+      - name: "cpu"
+        nominalQuota: 4 # This is the shared pool for the cohort
+      - name: "memory"
+        nominalQuota: 8Gi
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  cohort: team-ab
+  preemption:
+    borrowWithinCohort:
+      policy: LowerPriority # This policy enables preemption
+  resourceGroups:
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: cpu
+        nominalQuota: 0 # Must borrow CPU from the cohort
+      - name: memory
+        nominalQuota: 0
+  - coveredResources: ["nvidia.com/gpu"]
+    flavors:
+    - name: gpu-flavor
+      resources:
+      - name: nvidia.com/gpu
+        nominalQuota: "1" # Guaranteed GPU quota for Team A
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-b-cq
+spec:
+  cohort: team-ab
+  resourceGroups:
+  - coveredResources: ["nvidia.com/gpu"]
+    flavors:
+    - name: gpu-flavor
+      resources:
+      - name: nvidia.com/gpu
+        nominalQuota: "0" # No GPU quota for Team B
+        borrowingLimit: "0"
+  - coveredResources: ["cpu", "memory"]
+    flavors:
+    - name: default-flavor
+      resources:
+      - name: cpu
+        nominalQuota: 0 # Must borrow CPU from the cohort
+      - name: memory
+        nominalQuota: 0
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: local-queue
+  namespace: team-a
+spec:
+  clusterQueue: team-a-cq
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: local-queue
+  namespace: team-b
+spec:
+  clusterQueue: team-b-cq
+----
++
+[NOTE]
+====
+You can apply the above manifest by saving it to a file (e.g., `setup.yaml`) and running `oc apply -f setup.yaml`, or by using a heredoc: `oc apply -f - <<EOF ... EOF`.
+====
+
+. Verify the setup by checking the `ClusterQueue` objects.
++
+[source,bash]
+----
+oc get cq
+----
++
+You should see `team-a-cq`, `team-b-cq`, and `shared-cq` listed with a status of `Active`.
+
+=== Deploy the Low-Priority Workload (Team B)
+
+Now, acting as **Team B**, we will submit a `RayCluster` job. This job requests 4 CPU cores, which consumes the entire shared quota.
+
+. Create a file named `team-b-job.yaml` with the following content.
++
+[source,yaml,title="team-b-job.yaml"]
+----
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  labels:
+    kueue.x-k8s.io/queue-name: local-queue
+    kueue.x-k8s.io/priority-class: dev-priority # Lower priority
+  name: raycluster-dev
+  namespace: team-b
+spec:
+  rayVersion: 2.7.0
+  headGroupSpec:
+    template:
+      spec:
+        containers:
+        - name: ray-head
+          image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          resources:
+            limits: { cpu: "2", memory: 3G }
+            requests: { cpu: "2", memory: 3G }
+  workerGroupSpecs:
+  - groupName: worker-group
+    replicas: 1
+    minReplicas: 1
+    maxReplicas: 1
+    template:
+      spec:
+        containers:
+        - name: machine-learning
+          image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          resources:
+            limits: { cpu: "2", memory: 3G }
+            requests: { cpu: "2", memory: 3G }
+----
+. Apply the manifest to create the `RayCluster`.
++
+[source,bash]
+----
+oc apply -f team-b-job.yaml
+----
+. Verify that the job is admitted and running.
++
+--
+Check the Kueue workload status. The `ADMITTED` column should be `True`.
+[source,bash]
+----
+oc get workload -n team-b
+----
+Check the pods. They should be in the `Running` state.
+[source,bash]
+----
+oc get pods -n team-b
+----
+--
+
+At this point, Team B's job has successfully claimed all 4 CPUs from the shared cohort.
+
+=== Deploy the High-Priority Workload (Team A)
+
+Next, acting as **Team A**, we will submit a higher-priority `RayCluster` that requires a GPU and 4 CPU cores. Since the CPU pool is full, Kueue must preempt Team B's job.
+
+. Create a file named `team-a-job.yaml` with the following content.
++
+[source,yaml,title="team-a-job.yaml"]
+----
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  labels:
+    kueue.x-k8s.io/queue-name: local-queue
+    kueue.x-k8s.io/priority-class: prod-priority # Higher priority
+  name: raycluster-prod
+  namespace: team-a
+spec:
+  rayVersion: 2.7.0
+  headGroupSpec:
+    template:
+      spec:
+        containers:
+        - name: ray-head
+          image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          resources:
+            limits: { cpu: "2", memory: 3G }
+            requests: { cpu: "2", memory: 3G }
+  workerGroupSpecs:
+  - groupName: worker-group
+    replicas: 1
+    minReplicas: 1
+    maxReplicas: 1
+    template:
+      spec:
+        containers:
+        - name: machine-learning
+          image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          resources:
+            limits: { cpu: "2", memory: 3G, "nvidia.com/gpu": "1" }
+            requests: { cpu: "2", memory: 3G, "nvidia.com/gpu": "1" }
+        tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+----
+. Apply the manifest.
++
+[source,bash]
+----
+oc apply -f team-a-job.yaml
+----
+
+=== Observe and Verify Preemption
+
+This is the key part of the lab 🍿 +
+We will watch as Kueue automatically evicts Team B's workload to make room for Team A's.
+
+. Watch the status of the workloads in both namespaces. The change should happen within a minute.
++
+[source,bash]
+----
+oc get workload -A -w
+----
++
+You will see that the `raycluster-dev` workload in `team-b` switch its `ADMITTED` status from `True` to `False`. +
+Shortly after, the `raycluster-prod` workload in `team-a` will switch its `ADMITTED` status to `True`.
+
+. Check the pods in both namespaces.
++
+--
+Team B's pods should now be in the `Terminating` state.
+[source,bash]
+----
+oc get pods -n team-b
+----
+Team A's pods should be in the `ContainerCreating` or `Running` state.
+[source,bash]
+----
+oc get pods -n team-a
+----
+--
+
+. To see the explicit preemption message, describe Team B's workload.
++
+[source,bash]
+----
+oc describe workload -n team-b raycluster-dev
+----
++
+Look for the `Events` section at the bottom. You will see a clear message stating that the workload was **Evicted** because it was preempted by the higher-priority workload.
++
+[source,text]
+----
+Events:
+  Type    Reason   Age   From   Message
+  ----    ------   ----  ----   -------
+  Normal  Evicted  25s   kueue  Preempted by workload team-a/raycluster-prod
+----
+
+
+== Conclusion 🎉
+
+* You have successfully demonstrated a sophisticated resource management scenario using Kueue. 
+* You configured a shared resource cohort for two teams with different priorities and resource requirements. 
+* Most importantly, you verified that Kueue's preemption mechanism works as expected, allowing a high-priority workload (`team-a`) to claim resources from a running, lower-priority workload (`team-b`), ensuring that business-critical jobs are not starved of resources.
+
+This powerful capability is crucial for managing expensive and scarce resources like GPUs efficiently and fairly in a multi-tenant AI/ML platform.
+
+[bibliography]
+== References
+
+* [[[kueue-docs, 1]]] Kueue. _Documentation_. Version May 15, 2025. Available from: https://kueue.sigs.k8s.io/docs/overview/.
+* [[[repo, 2]]] AI on OpenShift Contrib Repo. _Kueue Preemption Example_. Available from: https://github.com/opendatahub-io-contrib/ai-on-openshift.
