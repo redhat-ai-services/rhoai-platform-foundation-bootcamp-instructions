@@ -61,7 +61,7 @@ The KV Cache memory usage is dynamic and depends on several factors:
 While precise calculation requires knowing the exact attention head configuration and desired `max_model_len`, here's a rough idea:
 
 * For a *2.5B* model, the KV Cache can add a significant amount, often a few gigabytes, and can even exceed the model weights if you're handling many concurrent, long sequences.
-* For example, a *2.5B* model processing around `2,048` tokens in FP16 might need an additional *~0.16 GB* for the KV Cache per sequence (this is a rough estimate and depends heavily on batch size and `max_model_len`).
+* For example, a *2.5B* model processing around `2048` tokens in FP16 might need an additional *~0.16 GB* for the KV Cache per sequence (this is a rough estimate and depends heavily on batch size and `max_model_len`).
 
 The most reliable source for a model's architectural parameters is its configuration file, usually named `config.json`, found alongside the model weights on Hugging Face Hub.
 
