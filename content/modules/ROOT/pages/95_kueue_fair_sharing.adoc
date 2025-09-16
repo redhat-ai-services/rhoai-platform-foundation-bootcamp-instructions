@@ -54,7 +54,7 @@ oc adm taint nodes <your-gpu-node-name> nvidia.com/gpu=Exists:NoSchedule
 
 == Lab Steps
 
-=== Step 1: Configure the Multi-Team Environment
+=== Configure the Multi-Team Environment
 
 First, we will apply all the necessary configuration objects to set up our environment. This includes creating namespaces, defining resource flavors for CPU and GPU, and configuring the Kueue queues with the correct quotas and preemption policies.
 
