@@ -461,9 +461,14 @@ spec:
 
 ----
 
-== Verify the Configuration
+
+[NOTE]
+====
 The Blog article https://developers.redhat.com/articles/2025/01/30/build-and-deploy-modelcar-container-openshift-ai?source=sso#[Build and deploy a ModelCar container in OpenShift AI] demonstrates how to build a ModelCar Container and discusses pros and cons about the ModelCar Approach. +
-Use the ModelCar available at `oci://quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-2b-instruct` to deploy a Model using OpenShift AI.
+In the next steps we will use the ModelCar available at `oci://quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-2b-instruct` to deploy a Model using OpenShift AI.
+====
+
+== Verify the Configuration
 
 === Create Models
 In this section two models will be deployed. One will use the `nvidia.com/gpu` accelerator, whike the other model will use the `nvidia.com/mig-2g.20gb` accelerator.
@@ -476,7 +481,7 @@ image::92-rhoai-project-gpuaas.png[]
 +
 image::92-create-data-connection.png[]
 
-. Deploy a Model within the `granite` project:
+. Deploy a Model within the `granite` project (go to `Models` -> `Single-model serving platform` -> `Deploy Model`):
 +
 image::92-create-model.png[]
 
@@ -504,20 +509,26 @@ While inspecting the resource (which will be created RHOAI while serving a Model
 [.console-input]
 [source,bash]
 ----
-oc get pod granite-33-2b-instruct-mig-predictor-00001-deployment-<uuid> -n granite -oyaml | grep -B 3 'nvidia.com/mig-2g.20gb: "1"'
+oc get pods -n granite -o yaml |grep nvidia -B 3
 ----
 
 The output will look like the following:
 [source,yaml]
 ----
-      limits:
-        cpu: "2"
-        memory: 4Gi
-        nvidia.com/mig-2g.20gb: "1"
-      requests:
-        cpu: "2"
-        memory: 4Gi
-        nvidia.com/mig-2g.20gb: "1"
+        limits:
+          cpu: "2"
+          memory: 4Gi
+          nvidia.com/mig-2g.20gb: "1"
+        requests:
+          cpu: "2"
+          memory: 4Gi
+          nvidia.com/mig-2g.20gb: "1"
+--
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-09-19T14:59:18Z"
+      message: '0/3 nodes are available: 1 Insufficient cpu, 1 Insufficient nvidia.com/mig-2g.20gb,
+        2 node(s) had untolerated taint {nvidia.com/gpu: Exists}. preemption: 0/3
 ----
 As explained earlier, when applying the MIG configuratiuon within a Cluster which does not have an accelerator type (i.e. `nvidia.com/mig-2g.20gb`) the scheduler will not be able to be scheduled, therefore affected pods will stay in `Pending` state.
 

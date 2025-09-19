@@ -46,8 +46,9 @@ kind: Namespace
 metadata:
   name: openshift-kueue-operator
   annotations:
-    openshift.io/description: "Red Hat build of Kueue Operator namespace"
-    openshift.io/display-name: "OpenShift Kueue Operator"
+    openshift.io/description: "openshift-kueue-operator"
+    openshift.io/display-name: "openshift-kueue-operator"
+    openshift.io/requester: ""
   labels:
     openshift.io/cluster-monitoring: "true"
 spec:
@@ -56,24 +57,7 @@ spec:
 EOF
 ----
 
-. Create the `OperatorGroup` for the Kueue operator in the newly created namespace.
-+
-[.console-input]
-[source,bash]
-----
-cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: openshift-kueue-operator-group
-  namespace: openshift-kueue-operator
-spec:
-  targetNamespaces:
-    - openshift-kueue-operator
-EOF
-----
-
-. Create the `Subscription` to install the Kueue operator from `redhat-operators`.
+. Create the `Subscription` for the Kueue operator in the newly created namespace.
 +
 [.console-input]
 [source,bash]
@@ -82,6 +66,8 @@ cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
+  labels:
+    operators.coreos.com/kueue-operator.openshift-kueue-operator: ""
   name: kueue-operator
   namespace: openshift-kueue-operator
 spec:
@@ -91,6 +77,27 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
   startingCSV: kueue-operator.v1.0.1
+EOF
+----
+
+. Create the `OperatorGroup` to install the Kueue operator from `redhat-operators`.
++
+[.console-input]
+[source,bash]
+----
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  annotations:
+    olm.providedAPIs: Kueue.v1.kueue.openshift.io
+  name: openshift-kueue-operator
+  namespace: openshift-kueue-operator
+spec:
+  upgradeStrategy: Default
+status:
+  namespaces:
+  - ""
 EOF
 ----
 
@@ -135,10 +142,7 @@ spec:
 EOF
 ----
 
-After these steps, the Red Hat build of Kueue is installed and running in your cluster. You can verify its status in the OpenShift Web Console by navigating to *Operators -> Installed Operators*.
-
-[NOTE]
-A screenshot of the OpenShift AI Dashboard under "Settings" -> "Accelerator profiles", showing the list of newly created MIG profiles.
+After these steps, the Red Hat build of Kueue is installed and running in your cluster. You can verify its status in the OpenShift Web Console by navigating to *Operators -> Installed Operators -> Red Hat build of Kueue -> Kueue -> Cluster*.
 
 image::RHBoKCluster.png[]
 
@@ -154,6 +158,7 @@ First apply the following configuration:
 [.console-input]
 [source,yaml]
 ----
+cat <<EOF | oc apply -f -
 kind: Project
 apiVersion: project.openshift.io/v1
 metadata:
@@ -286,7 +291,33 @@ spec:
             requests:
               cpu: 500m
               memory: 512Mi
+EOF
 ----
+
+[NOTE]
+====
+Wait for the pods on the kueue-system namespace to be in Running state.
+You can check the status with:
+[source,bash]
+----
+oc get pods -n kueue-system -w
+----
+You should see output similar to this, indicating the pods are `Running`:
+[source,text]
+----
+NAME                                      READY   STATUS    RESTARTS   AGE
+kueue-kueueviz-backend-xxxxxx-yyyyy       1/1     Running   0          2m
+kueue-kueueviz-frontend-xxxxxx-zzzzz      1/1     Running   0          2m  
+----
+
+In case you are having issues with the scheduling of the pods, you can try to increase the number of workers in your cluster. (via MachineSet in the OpenShift Web Console).
+====
+
+
+
+
+
+Then, you can access the Kueue Vizualization UI by port-forwarding the backend and frontend services to your local machine. Run the following commands in your terminal:
 
 [.console-input]
 [source,bash]
