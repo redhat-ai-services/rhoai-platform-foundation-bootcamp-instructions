@@ -472,7 +472,7 @@ In this section two models will be deployed. One will use the `nvidia.com/gpu` a
 +
 image::92-rhoai-project-gpuaas.png[]
 
-. Create a `Data Connection` within the `granite` Project:
+. Create a `Connection` within the `granite` Project:
 +
 image::92-create-data-connection.png[]
 
