@@ -14,10 +14,10 @@
 
 * Notebooks
     ** 7. xref:31_custom_notebook.adoc[Custom Notebook]
-    ** 8. xref:33_model_training_car.adoc[Model Training]
-    ** 9. xref:09_remote_connect_notebook.adoc[Connect to Workbench Kernel]
+    ** 8. xref:09_remote_connect_notebook.adoc[Connect to Workbench Kernel]
 
-* Storage
+* Train, Store (S3), Deploy
+    ** 9. xref:33_model_training_car.adoc[Model Training]
     ** 10. xref:34_using_s3_storage.adoc[Using S3 Storage]
     ** 11. xref:36_deploy_model.adoc[Deploy Model]
 
