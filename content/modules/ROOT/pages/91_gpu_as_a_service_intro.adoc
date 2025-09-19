@@ -1,38 +1,37 @@
 = Lab Introduction: GPU as a Service with GPU slicing and Kueue
-:icons: font
 :stem: latexmath
 :icons: font
 :toc: left
 :source-highlighter: highlight.js
 :numbered:
 
-This lab explores GPU slicing and its application in workload prioritization. To fully grasp the significance of these topics, a solid understanding of workload sizing is essential. Therefore, we will begin by demonstrating the vRAM calculation required to serve an `ibm-granite/granite-3.3-2b-instruct` model. This example will then underscore the importance of slicing GPUs into smaller units.
+This lab explores GPU slicing and its application in workload prioritization. To fully grasp the significance of these topics, a solid understanding of workload sizing is essential. Therefore, we will begin by demonstrating the vRAM calculation required to serve an `ibm-granite/granite-3.3-2b-instruct` model. This example will underscore the importance of slicing GPUs into smaller, more efficient units.
 
 == Model Size
 
-In some of the previous sections, we mentioned vLLM (Red Hat Inference Server) and its use of https://arxiv.org/abs/2309.06180[PagedAttention], a technique that optimizes GPU memory management, reducing the memory required to serve models. To further enhance GPU utilization and maximize the return on investment (ROI) of this expensive hardware, additional optimizations are crucial. Let's demonstrate this by calculating the memory consumption when serving the `ibm-granite/granite-3.3-2b-instruct` model. The following calculation shows that an entire GPU is not always necessary. Without the use of slicing techniques, this would be a waste of resources.
+We will leverage vLLM (the engine used in the Red Hat Inference Server) and its use of https://arxiv.org/abs/2309.06180[PagedAttention], a technique that optimizes GPU memory management. To maximize the return on investment (ROI) of expensive GPU hardware, it is crucial to understand the precise memory consumption of a model. The following calculation for the `ibm-granite/granite-3.3-2b-instruct` model demonstrates that an entire GPU is often unnecessary, and without slicing techniques, valuable resources would be wasted.
 
 * *Model Weights:* This is the memory required to load the model's parameters into the GPU.
-* *KV Cache (Key-Value Cache):* This is dynamic memory used to store the attention keys and values for active sequences (prompts and generated tokens). vLLM's PagedAttention mechanism is designed to optimize this, but it still consumes significant memory, especially with high concurrency and long sequence lengths.
+* *KV Cache (Key-Value Cache):* This is dynamic memory used to store attention keys and values for active sequences. While vLLM's PagedAttention optimizes this, it still consumes significant memory, especially with high concurrency and long sequence lengths.
 
 === Model Weights
 The `granite-3.3-2b-instruct` model has 2.53 billion parameters. For cleaner calculations, we will approximate this as 2.5B. The memory usage for model weights depends on the data type (precision) you load it in:
 
-* *FP16 (Half Precision) or BF16 (bfloat16):* Each parameter uses 2 bytes. This is the most common and recommended precision for inference to save memory while maintaining good performance.
-
+* *FP16 (Half Precision) or BF16 (bfloat16):* Each parameter uses 2 bytes. This is the most common and recommended precision for inference.
++
 [latexmath]
 ++++
 2.5 \text{B parameters} \cdot 2 \text{ bytes/parameter} = 5 \text{ GB}
 ++++
 
 * *INT8 (8-bit Quantization):* Each parameter uses 1 byte.
-
++
 [latexmath]
 ++++
 2.5 \text{B parameters} \cdot 1 \text{ byte/parameter} = 2.5 \text{ GB}
 ++++
 
-vLLM typically defaults to FP16 (or `bfloat16` if supported by the GPU) for an optimal balance of speed and memory. Therefore, the model weights will consume approximately **5 GB**. The total memory footprint will be significantly larger once the KV Cache is accounted for, as we will see next.
+vLLM typically defaults to FP16 (or `bfloat16` if supported) for an optimal balance of speed and memory. Therefore, the model weights will consume approximately **5 GB**.
 
 [TIP]
 .Is the `bfloat16` same as `float16`, or this is some new number format?  
@@ -116,29 +115,25 @@ Let's break down the estimated memory usage for `ibm-granite/granite-3.3-2b-inst
 
 [discrete]
 ==== Model Configuration from `config.json`
-Based on the `config.json`, here are the relevant parameters:
-
 * *Model Parameters:* 2.53 billion
-* *Embedding size* (Hidden dimension size, latexmath:[$h$] or latexmath:[$d_{model}$]): 2048
+* *Hidden dimension size* (latexmath:[$h$]): 2048
 * *Number of layers* (latexmath:[$L$]): 40
-* *Number of attention heads* (latexmath:[$num_{query\_attention\_heads}$]): 32
-* *Number of KV heads* (latexmath:[$num_{kv\_attention\_heads}$]): 8
-* *Maximum context length* (latexmath:[$max_{context\_length}$]): 131,072 tokens
-* *KV Cache data type size* (latexmath:[$kv_{data\_type\_size}$]): 2 bytes (for FP16/BF16)
+* *Number of attention heads*: 32
+* *Number of KV heads*: 8
+* *Maximum context length*: 131,072 tokens
+* *KV Cache data type size*: 2 bytes (for FP16/BF16)
 
 [discrete]
-==== *a. Calculate `head_dim`*
-The dimension of each attention head is `hidden_size` latexmath:[$h$] divided by `num_attention_heads`:
-
+==== a. Calculate `head_dim`
+The dimension of each attention head is `hidden_size` / `num_attention_heads`:
 [latexmath]
 ++++
 head\_dim = \frac{h}{num_{attention\_heads}} = \frac{2048}{32} = 64
 ++++
 
 [discrete]
-==== *b. Calculate KV Cache Size per Token*
-For each token, in each layer, we store a Key (K) and a Value (V) vector. The size of the cache per token across all layers is:
-
+==== b. Calculate KV Cache Size per Token
+The size of the cache per token across all layers is:
 [latexmath]
 ++++
 \begin{align*}
@@ -149,9 +144,8 @@ For each token, in each layer, we store a Key (K) and a Value (V) vector. The si
 ++++
 
 [discrete]
-==== *c. Total KV Cache Size (for max_model_len, single sequence)*
-Finally, to get the total KV Cache size for a single request at the maximum context length:
-
+==== c. Total KV Cache Size (for a single max-length sequence)
+The total KV Cache size for one request at the maximum context length is:
 [latexmath]
 ++++
 \begin{align*}
@@ -200,9 +194,8 @@ As you can see, the KV Cache for a single max-length request is twice the size o
 A common way to calculate the needed KV Cache are calculators like the https://huggingface.co/spaces/gaunernst/kv-cache-calculator[gaunernst/kv-cache-calculator] from Hugging Face.
 
 == GPU Optimization
-Our previous example showed a vRAM requirement of at least *16 GB* for a single user at maximum context length. Assuming we target *20 GB* of vRAM to support a few concurrent queries, an *H100 GPU* with *80 GB* of vRAM can easily accommodate this model. However, this leaves a significant portion of GPU capacity unused, leading to a low return on investment (ROI). To boost GPU utilization, we can leverage the *H100's* slicing capabilities. The rest of this course will demonstrate how to split the GPU into Multi-Instance GPU (MIG) instances, allowing us to serve up to four models of the same size and configuration concurrently.
+Our calculation shows a vRAM requirement of at least *16 GB* for a single user at maximum context. If we target *20 GB* to support a few concurrent queries, an *H100 GPU* with *80 GB* of vRAM can easily accommodate the model. However, this leaves a significant portion of the GPU unused. To boost utilization, we can leverage the H100's slicing capabilities, which this course will explore. To boost GPU utilization, we can leverage the *H100's* slicing capabilities. The rest of this course will demonstrate how to split the GPU into Multi-Instance GPU (MIG) instances, allowing us to serve up to four models of the same size and configuration concurrently.
 
-[TIP]
 [TIP]
 See also the https://github.com/rh-aiservices-bu/gpu-partitioning-guide[GPU partitioning guide] developed by the `rh-aiservices-bu`.
 
