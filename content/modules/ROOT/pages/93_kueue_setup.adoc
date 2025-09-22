@@ -298,6 +298,8 @@ EOF
 ====
 Wait for the pods on the kueue-system namespace to be in Running state.
 You can check the status with:
+
+[.console-input]
 [source,bash]
 ----
 oc get pods -n kueue-system -w
@@ -310,10 +312,13 @@ kueue-kueueviz-backend-xxxxxx-yyyyy       1/1     Running   0          2m
 kueue-kueueviz-frontend-xxxxxx-zzzzz      1/1     Running   0          2m  
 ----
 
-In case you are having issues with the scheduling of the pods, you can try to increase the number of workers in your cluster. (via MachineSet in the OpenShift Web Console).
+
 ====
 
-
+[WARNING]
+====
+In case you are having issues with the scheduling of the pods, you can try to increase the number of workers in your cluster. (via MachineSet in the OpenShift Web Console).
+====
 
 
 
