@@ -34,14 +34,19 @@ To check the current taints on your GPU nodes, use the following commands:
 [source,bash]
 ----
 oc get nodes --selector=nvidia.com/gpu.present=true
-oc describe node <your-gpu-node-name> | grep "Taints:"
+----
+
+[.console-input]
+[source,bash]
+----
+oc describe node *<your-gpu-node-name>* | grep "Taints:"
 ----
 
 This taint was likely applied during the bootstrap process in the previous lab. If you need to re-apply it, use the following command:
 [.console-input]
 [source,bash]
 ----
-oc adm taint nodes <your-gpu-node-name> nvidia.com/gpu=Exists:NoSchedule --overwrite
+oc adm taint nodes *<your-gpu-node-name>* nvidia.com/gpu=Exists:NoSchedule --overwrite
 ----
 ====
 
@@ -284,7 +289,7 @@ Patch the ClusterPolicy so the Device Plugin uses the custom config map:
 ----
 oc patch clusterpolicy gpu-cluster-policy \
     -n nvidia-gpu-operator --type json \
-    -p '[{"op": "replace", "path": "/spec/gfd/enable", "value": true}]'
+    -p '[{"op": "replace", "path": "/spec/gfd/enabled", "value": true}]'
 ----
 
 [.console-input]
