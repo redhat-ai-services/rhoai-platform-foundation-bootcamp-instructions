@@ -97,11 +97,12 @@ spec:
     nvidia.com/gpu.product: NVIDIA-A10G-SHARED
 ----
 
-.Not yet supported by the Operator
+.Configuration of Cohorts
 [NOTE]
 ====
 Usually the customer would like to increase the usage of the GPUs as much as possible. Therefore it would be a good solution to borrow GPU quota between cluster queues. +
 Every time a GPU within a `ClusterQueue` is unused it can be borrowed by one of the others, but it has to be released as soon as the original `ClusterQueue` wants to use the resource.
+Using the Operator https://docs.redhat.com/en/documentation/red_hat_build_of_kueue/1.0/html/cohorts_and_advanced_configurations/using-cohorts[Cohorts] are configured within the `ClusterQueue` resource.
 
 As stated in the official Kueue docs <<kueue-docs>>:
 
