@@ -1,0 +1,61 @@
+= MaaS Bootstrap
+:stem: latexmath
+:icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
+
+Lets look at the steps to add the MaaS components to your OCP Cluster.
+
+== Clone ai-accelerator-examples repo
+
+
+[.console-input]
+[source,bash]
+----
+git clone git@github.com:redhat-ai-services/ai-accelerator-examples.git
+cd ai-accelerator-examples
+----
+
+
+== Execute the bootstrap script
+. Login to the cluster using oc login...
+. Run the bootstrap script to set up the environment. This script will handle the installation of necessary components and configurations.
++
+[.console-input]
+[source,bash]
+----
+./bootstrap.sh 
+----
+
+. Just hit enter twice to run the script from the current repo and branch:
++
+[.console-input]
+[source,bash]
+----
+Current repository URL: https://github.com/redhat-ai-services/ai-accelerator-examples
+
+Press Enter to use this URL, or enter a new repository URL: 
+Using repository URL: https://github.com/redhat-ai-services/ai-accelerator-examples
+
+Current repository branch: main
+
+Press Enter to use this branch, or enter a new repository branch: 
+Using repository branch: main
+----
+
+
+. Then select ```models-as-a-service-3scale``` example to deploy (number 1 in this output)
++
+image::101_maas_bootstrap_01.png[] 
+
+. Allow the script to complete with something like this:
++
+image::101_maas_bootstrap_02.png[] 
+
+. Lastly navigate to your ArgoCD UI and check the status of ```models-as-a-service-3scale``` project (5 applications):
++
+image::101_maas_bootstrap_03.png[] 
+
+. Once all those apps are ready, move to the first exercise: xref:102_maas_as_developer_lab.adoc [Using MaaS as a Developer]
+

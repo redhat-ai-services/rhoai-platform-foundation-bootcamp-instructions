@@ -1,6 +1,37 @@
-= Lab Exercise: Connecting AnythingLLM to a 3scale served model
+= Lab Exercise: Using MaaS as a Developer
+:stem: latexmath
+:icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
 
 This exercise will guide you through the process of deploying AnythingLLM as a custom workbench in OpenShift AI and configuring it to connect to a Large Language Model (LLM) that is being served via a Model-as-a-Service (MaaS) pattern with 3scale managing API access.
+
+
+
+image::102_maas_as_developer_01.png[] 
+image::102_maas_as_developer_02.png[] 
+image::102_maas_as_developer_03.png[] 
+image::102_maas_as_developer_04.png[] 
+image::102_maas_as_developer_05.png[] 
+image::102_maas_as_developer_06.png[] 
+image::102_maas_as_developer_07.png[] 
+image::102_maas_as_developer_08.png[] 
+
+
+
+Get model endpoint served by 3Scale:
+
+[source,language,attributes]
+----
+oc get routes -n 3scale -o json | jq -r '.items[] | select(.spec.host | contains("llama-32-1b-instruct-cpu-maas-apicast-production")) | .spec.host'
+----
+
+Example:
+https://llama-32-1b-instruct-cpu-maas-apicast-production.apps.cluster-hbp92.hbp92.sandbox1781.opentlc.com/v1
+
+
+
 
 == *Step 1 Ensure Model is Served via MaaS (3scale) and Obtain API Key*
 
