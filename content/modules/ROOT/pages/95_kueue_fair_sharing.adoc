@@ -54,6 +54,7 @@ First, apply all the necessary configuration objects. This includes namespaces, 
 [.console-input]
 [source,yaml]
 ----
+cat <<EOF | oc create -f -
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -133,7 +134,8 @@ spec:
   cohort: team-ab
   preemption:
     borrowWithinCohort:
-      policy: LowerPriority # This policy enables preemption
+      policy: "LowerPriority" # Preempt lower-priority workloads in the cohort
+    reclaimWithinCohort: "LowerPriority" # Reclaim from lower-priority workloads in the cohort
   resourceGroups:
   - coveredResources: ["cpu", "memory"]
     flavors:
@@ -188,14 +190,9 @@ metadata:
   namespace: team-b
 spec:
   clusterQueue: team-b-cq
+EOF
 ----
-. Apply the manifest file.
-+
-[.console-input]
-[source,bash]
-----
-oc apply -f kueue-preemption-setup.yaml
-----
+
 . Verify the setup by checking the `ClusterQueue` objects.
 +
 [.console-input]
@@ -215,6 +212,7 @@ Now, acting as Team B, submit a `RayCluster` job. This job requests 4 CPU cores,
 [.console-input]
 [source,yaml]
 ----
+cat <<EOF | oc create -f -
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
@@ -233,6 +231,7 @@ spec:
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
           resources:
             requests: { cpu: "2", memory: 3G }
+    rayStartParams: {} 
   workerGroupSpecs:
   - groupName: worker-group
     replicas: 1
@@ -245,14 +244,10 @@ spec:
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
           resources:
             requests: { cpu: "2", memory: 3G }
+    rayStartParams: {} 
+EOF
 ----
-. Apply the manifest.
-+
-[.console-input]
-[source,bash]
-----
-oc apply -f team-b-job.yaml
-----
+
 . Verify that the job is admitted and running.
 +
 --
@@ -281,6 +276,7 @@ Next, as Team A, submit a `RayCluster` that requires a GPU and 4 CPU cores. Sinc
 [.console-input]
 [source,yaml]
 ----
+cat <<EOF | oc create -f -
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
@@ -299,6 +295,7 @@ spec:
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
           resources:
             requests: { cpu: "2", memory: 3G }
+    rayStartParams: {}
   workerGroupSpecs:
   - groupName: worker-group
     replicas: 1
@@ -315,6 +312,8 @@ spec:
         - key: nvidia.com/gpu
           operator: Exists
           effect: NoSchedule
+    rayStartParams: {}
+EOF
 ----
 . Apply the manifest.
 +
