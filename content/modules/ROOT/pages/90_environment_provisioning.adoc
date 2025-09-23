@@ -37,7 +37,7 @@ The Git URL provided in the following command is a placeholder. Remember to chan
 [source,bash]
 ----
 git clone git@github.com:shebistar/ai-accelerator.git --single-branch --branch feature/gpu-as-a-service ai-accelerator-gpu   # TODO: Change to official repo when available
-cd ai-accelerator
+cd ai-accelerator-gpu
 ----
 
 == Execute the bootstrap script
