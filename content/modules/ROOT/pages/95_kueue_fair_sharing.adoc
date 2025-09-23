@@ -60,15 +60,17 @@ kind: Namespace
 metadata:
   labels:
     kubernetes.io/metadata.name: team-a
+    opendatahub.io/dashboard: "true"
+    kueue.openshift.io/managed: "true"
   name: team-a
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
     kubernetes.io/metadata.name: team-b
+    opendatahub.io/dashboard: "true"
+    kueue.openshift.io/managed: "true"
   name: team-b
----
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -76,12 +78,12 @@ metadata:
   namespace: team-a
 subjects:
   - kind: ServiceAccount
-    name: default
+    name: team-a
+    namespace: team-a
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: edit
----
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -89,92 +91,114 @@ metadata:
   namespace: team-b
 subjects:
   - kind: ServiceAccount
-    name: default
+    name: team-b
+    namespace: team-b
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: edit
----
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ResourceFlavor
 metadata:
   name: default-flavor
----
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ResourceFlavor
 metadata:
   name: gpu-flavor
 spec:
-  nodeTolerations:
+  nodeLabels:
+    nvidia.com/gpu.present: "true"
+  tolerations:
   - key: nvidia.com/gpu
     operator: Exists
     effect: NoSchedule
----
-apiVersion: kueue.x-k8s.io/v1beta1
-kind: ClusterQueue
-metadata:
-  name: shared-cq
-spec:
-  cohort: "team-ab"
-  resourceGroups:
-  - coveredResources: ["cpu", "memory"]
-    flavors:
-    - name: "default-flavor"
-      resources:
-      - name: "cpu"
-        nominalQuota: 4 # This is the shared pool for the cohort
-      - name: "memory"
-        nominalQuota: 8Gi
----
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ClusterQueue
 metadata:
   name: team-a-cq
 spec:
-  cohort: team-ab
   preemption:
+    reclaimWithinCohort: Any
     borrowWithinCohort:
-      policy: "LowerPriority" # Preempt lower-priority workloads in the cohort
-    reclaimWithinCohort: "LowerPriority" # Reclaim from lower-priority workloads in the cohort
+      policy: LowerPriority
+      maxPriorityThreshold: 100
+    withinClusterQueue: Never
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: team-a
+  queueingStrategy: BestEffortFIFO
+  cohort: team-ab
   resourceGroups:
-  - coveredResources: ["cpu", "memory"]
+  - coveredResources:
+    - cpu
+    - memory
     flavors:
     - name: default-flavor
       resources:
       - name: cpu
-        nominalQuota: 0 # Must borrow CPU from the cohort
+        nominalQuota: 0
       - name: memory
         nominalQuota: 0
-  - coveredResources: ["nvidia.com/gpu"]
+  - coveredResources:
+    - nvidia.com/gpu
     flavors:
     - name: gpu-flavor
       resources:
       - name: nvidia.com/gpu
-        nominalQuota: "1" # Guaranteed GPU quota for Team A
----
+        nominalQuota: "1"
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ClusterQueue
 metadata:
   name: team-b-cq
 spec:
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: team-b
+  queueingStrategy: BestEffortFIFO
   cohort: team-ab
   resourceGroups:
-  - coveredResources: ["nvidia.com/gpu"]
+  - coveredResources:
+    - nvidia.com/gpu
     flavors:
     - name: gpu-flavor
       resources:
       - name: nvidia.com/gpu
-        nominalQuota: "0" # No GPU quota for Team B
+        nominalQuota: "0"
         borrowingLimit: "0"
-  - coveredResources: ["cpu", "memory"]
+  - coveredResources:
+    - cpu
+    - memory
     flavors:
     - name: default-flavor
       resources:
       - name: cpu
-        nominalQuota: 0 # Must borrow CPU from the cohort
+        nominalQuota: 0
       - name: memory
         nominalQuota: 0
----
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: "shared-cq"
+spec:
+  preemption:
+    reclaimWithinCohort: Any
+    borrowWithinCohort:
+      policy: LowerPriority
+      maxPriorityThreshold: 100
+    withinClusterQueue: Never
+  namespaceSelector: {}  #  match all.
+  cohort: "team-ab"
+  resourceGroups:
+  - coveredResources:
+    - cpu
+    - memory
+    flavors:
+    - name: "default-flavor"
+      resources:
+      - name: "cpu"
+        nominalQuota: 2
+      - name: "memory"
+        nominalQuota: 8Gi
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: LocalQueue
 metadata:
@@ -182,7 +206,6 @@ metadata:
   namespace: team-a
 spec:
   clusterQueue: team-a-cq
----
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: LocalQueue
 metadata:
@@ -213,38 +236,75 @@ Now, acting as Team B, submit a `RayCluster` job. This job requests 4 CPU cores,
 [source,yaml]
 ----
 cat <<EOF | oc create -f -
+# Team B is using dev-priority
+# Total CPU: 6
+# Total Mem: 16G
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
   labels:
     kueue.x-k8s.io/queue-name: local-queue
-    kueue.x-k8s.io/priority-class: dev-priority # Lower priority
+    kueue.x-k8s.io/priority-class: dev-priority
   name: raycluster-dev
   namespace: team-b
 spec:
   rayVersion: 2.7.0
   headGroupSpec:
+    enableIngress: false
+    rayStartParams:
+      block: "true"
+      dashboard-host: 0.0.0.0
+      num-gpus: "0"
     template:
+      metadata: {}
       spec:
         containers:
-        - name: ray-head
+        - env:
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: "void"
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          imagePullPolicy: Always
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - /bin/sh
+                - -c
+                - ray stop
+          name: ray-head
           resources:
-            requests: { cpu: "2", memory: 3G }
-    rayStartParams: {} 
+            limits:
+              cpu: "2"
+              memory: 3G
+            requests:
+              cpu: "2"
+              memory: 3G
+  suspend: false
   workerGroupSpecs:
-  - groupName: worker-group
-    replicas: 1
-    minReplicas: 1
+  - groupName: small-group-test
     maxReplicas: 1
+    minReplicas: 1
+    numOfHosts: 1
+    rayStartParams:
+      block: "true"
+      num-gpus: "0"
+    replicas: 1
+    scaleStrategy: {}
     template:
       spec:
         containers:
-        - name: machine-learning
+        - env:
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: "void"
+          name: machine-learning
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          imagePullPolicy: Always
           resources:
-            requests: { cpu: "2", memory: 3G }
-    rayStartParams: {} 
+            limits:
+              cpu: "2"
+              memory: 3G
+            requests:
+              cpu: "2"
 EOF
 ----
 
@@ -277,42 +337,78 @@ Next, as Team A, submit a `RayCluster` that requires a GPU and 4 CPU cores. Sinc
 [source,yaml]
 ----
 cat <<EOF | oc create -f -
+# Team A is using prod-priority and will prempt team A because shared-cq quota
+# is CPU: 10 and mem: 64G which has no spare quota for team A (GPU:10, MEM:24G).
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
   labels:
     kueue.x-k8s.io/queue-name: local-queue
-    kueue.x-k8s.io/priority-class: prod-priority # Higher priority
+    kueue.x-k8s.io/priority-class: prod-priority
   name: raycluster-prod
   namespace: team-a
 spec:
   rayVersion: 2.7.0
   headGroupSpec:
+    enableIngress: false
+    rayStartParams:
+      block: "true"
+      dashboard-host: 0.0.0.0
+      num-gpus: "0"
     template:
+      metadata: {}
       spec:
         containers:
-        - name: ray-head
+        - env:
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: "void"
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          imagePullPolicy: Always
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - /bin/sh
+                - -c
+                - ray stop
+          name: ray-head
           resources:
-            requests: { cpu: "2", memory: 3G }
-    rayStartParams: {}
+            limits:
+              cpu: "2"
+              memory: 3G
+            requests:
+              cpu: "2"
+              memory: 3G
+  suspend: false
   workerGroupSpecs:
-  - groupName: worker-group
-    replicas: 1
-    minReplicas: 1
+  - groupName: small-group-test
     maxReplicas: 1
+    minReplicas: 1
+    numOfHosts: 1
+    rayStartParams:
+      block: "true"
+      num-gpus: "1"
+    replicas: 1
+    scaleStrategy: {}
     template:
       spec:
         containers:
         - name: machine-learning
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
+          imagePullPolicy: Always
           resources:
-            requests: { cpu: "2", memory: 3G, "nvidia.com/gpu": "1" }
+            limits:
+              cpu: "2"
+              memory: 3G
+              nvidia.com/gpu: "1"
+            requests:
+              cpu: "2"
+              memory: 3G
+              nvidia.com/gpu: "1"
         tolerations:
-        - key: nvidia.com/gpu
+        - effect: NoSchedule
+          key: nvidia.com/gpu
           operator: Exists
-          effect: NoSchedule
-    rayStartParams: {}
 EOF
 ----
 . Apply the manifest.
