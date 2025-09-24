@@ -59,7 +59,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    kubernetes.io/metadata.name: team-a
+    kubernetes.io-metadata.name: team-a
     opendatahub.io/dashboard: "true"
     kueue.openshift.io/managed: "true"
   name: team-a
@@ -72,29 +72,29 @@ metadata:
     opendatahub.io/dashboard: "true"
     kueue.openshift.io/managed: "true"
   name: team-b
-kind: RoleBinding
 ---
+kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: edit
   namespace: team-a
 subjects:
   - kind: ServiceAccount
-    name: team-a
+    name: default
     namespace: team-a
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: edit
-kind: RoleBinding
 ---
+kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: edit
   namespace: team-b
 subjects:
   - kind: ServiceAccount
-    name: team-b
+    name: default
     namespace: team-b
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -121,7 +121,7 @@ spec:
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ClusterQueue
 metadata:
-  name: team-a-cq
+  name: "shared-cq"
 spec:
   preemption:
     reclaimWithinCohort: Any
@@ -129,7 +129,32 @@ spec:
       policy: LowerPriority
       maxPriorityThreshold: 100
     withinClusterQueue: Never
-  namespaceSelector:
+  namespaceSelector: {} # match all.
+  cohort: "team-ab"
+  resourceGroups:
+  - coveredResources: 
+    - cpu
+    - memory
+    flavors:
+    - name: "default-flavor"
+      resources:
+      - name: "cpu"
+        nominalQuota: 6 # This is the shared pool for the cohort
+      - name: "memory"
+        nominalQuota: 16Gi
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  preemption:
+    reclaimWithinCohort: Any
+    borrowWithinCohort:
+      policy: LowerPriority
+      maxPriorityThreshold: 100
+    withinClusterQueue: LowerPriority # This policy enables preemption
+  namespaceSelector:  
     matchLabels:
       kubernetes.io/metadata.name: team-a
   queueingStrategy: BestEffortFIFO
@@ -142,7 +167,7 @@ spec:
     - name: default-flavor
       resources:
       - name: cpu
-        nominalQuota: 0
+        nominalQuota: 0 # Must borrow CPU from the cohort
       - name: memory
         nominalQuota: 0
   - coveredResources:
@@ -151,14 +176,15 @@ spec:
     - name: gpu-flavor
       resources:
       - name: nvidia.com/gpu
-        nominalQuota: "1"
+        nominalQuota: "1"  # Guaranteed GPU quota for Team A
+  
 ---
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ClusterQueue
 metadata:
   name: team-b-cq
 spec:
-  namespaceSelector:
+  namespaceSelector:  
     matchLabels:
       kubernetes.io/metadata.name: team-b
   queueingStrategy: BestEffortFIFO
@@ -170,7 +196,7 @@ spec:
     - name: gpu-flavor
       resources:
       - name: nvidia.com/gpu
-        nominalQuota: "0"
+        nominalQuota: "0" # No GPU quota for Team B
         borrowingLimit: "0"
   - coveredResources:
     - cpu
@@ -179,34 +205,9 @@ spec:
     - name: default-flavor
       resources:
       - name: cpu
-        nominalQuota: 0
+        nominalQuota: 0 # Must borrow CPU from the cohort
       - name: memory
         nominalQuota: 0
----
-apiVersion: kueue.x-k8s.io/v1beta1
-kind: ClusterQueue
-metadata:
-  name: "shared-cq"
-spec:
-  preemption:
-    reclaimWithinCohort: Any
-    borrowWithinCohort:
-      policy: LowerPriority
-      maxPriorityThreshold: 100
-    withinClusterQueue: Never
-  namespaceSelector: {}  #  match all.
-  cohort: "team-ab"
-  resourceGroups:
-  - coveredResources:
-    - cpu
-    - memory
-    flavors:
-    - name: "default-flavor"
-      resources:
-      - name: "cpu"
-        nominalQuota: 2
-      - name: "memory"
-        nominalQuota: 8Gi
 ---
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: LocalQueue
@@ -223,6 +224,20 @@ metadata:
   namespace: team-b
 spec:
   clusterQueue: team-b-cq
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: prod-priority
+value: 1000
+description: "Priority class for prod jobs"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: dev-priority
+value: 100
+description: "Priority class for development jobs"
 EOF
 ----
 
@@ -252,67 +267,35 @@ kind: RayCluster
 metadata:
   labels:
     kueue.x-k8s.io/queue-name: local-queue
-    kueue.x-k8s.io/priority-class: dev-priority
+    kueue.x-k8s.io/priority-class: dev-priority # Lower priority
   name: raycluster-dev
   namespace: team-b
 spec:
   rayVersion: 2.7.0
   headGroupSpec:
-    enableIngress: false
-    rayStartParams:
-      block: "true"
-      dashboard-host: 0.0.0.0
-      num-gpus: "0"
     template:
-      metadata: {}
       spec:
         containers:
-        - env:
-          - name: NVIDIA_VISIBLE_DEVICES
-            value: "void"
+        - name: ray-head
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
-          imagePullPolicy: Always
-          lifecycle:
-            preStop:
-              exec:
-                command:
-                - /bin/sh
-                - -c
-                - ray stop
-          name: ray-head
           resources:
-            limits:
-              cpu: "2"
-              memory: 3G
-            requests:
-              cpu: "2"
-              memory: 3G
-  suspend: false
+            limits: { cpu: "2", memory: 3G }
+            requests: { cpu: "2", memory: 3G }
+    rayStartParams: {}
   workerGroupSpecs:
-  - groupName: small-group-test
-    maxReplicas: 1
-    minReplicas: 1
-    numOfHosts: 1
-    rayStartParams:
-      block: "true"
-      num-gpus: "0"
+  - groupName: worker-group
     replicas: 1
-    scaleStrategy: {}
+    minReplicas: 1
+    maxReplicas: 1
     template:
       spec:
         containers:
-        - env:
-          - name: NVIDIA_VISIBLE_DEVICES
-            value: "void"
-          name: machine-learning
+        - name: machine-learning
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
-          imagePullPolicy: Always
           resources:
-            limits:
-              cpu: "2"
-              memory: 3G
-            requests:
-              cpu: "2"
+            limits: { cpu: "2", memory: 3G }
+            requests: { cpu: "2", memory: 3G }
+    rayStartParams: {}
 EOF
 ----
 
@@ -329,7 +312,7 @@ Check that the pods are `Running`.
 [.console-input]
 [source,bash]
 ----
-oc get pods -n team-b
+oc get pods -n team-b -w
 ----
 --
 
@@ -351,80 +334,42 @@ kind: RayCluster
 metadata:
   labels:
     kueue.x-k8s.io/queue-name: local-queue
-    kueue.x-k8s.io/priority-class: prod-priority
+    kueue.x-k8s.io/priority-class: prod-priority # Higher priority
   name: raycluster-prod
   namespace: team-a
 spec:
   rayVersion: 2.7.0
   headGroupSpec:
-    enableIngress: false
-    rayStartParams:
-      block: "true"
-      dashboard-host: 0.0.0.0
-      num-gpus: "0"
     template:
-      metadata: {}
       spec:
         containers:
-        - env:
-          - name: NVIDIA_VISIBLE_DEVICES
-            value: "void"
+        - name: ray-head
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
-          imagePullPolicy: Always
-          lifecycle:
-            preStop:
-              exec:
-                command:
-                - /bin/sh
-                - -c
-                - ray stop
-          name: ray-head
           resources:
-            limits:
-              cpu: "2"
-              memory: 3G
-            requests:
-              cpu: "2"
-              memory: 3G
-  suspend: false
+            limits: { cpu: "2", memory: 3G }
+            requests: { cpu: "2", memory: 3G }
+    rayStartParams: {}
   workerGroupSpecs:
-  - groupName: small-group-test
-    maxReplicas: 1
-    minReplicas: 1
-    numOfHosts: 1
-    rayStartParams:
-      block: "true"
-      num-gpus: "1"
+  - groupName: worker-group
     replicas: 1
-    scaleStrategy: {}
+    minReplicas: 1
+    maxReplicas: 1
     template:
       spec:
         containers:
         - name: machine-learning
           image: quay.io/project-codeflare/ray:2.20.0-py39-cu118
-          imagePullPolicy: Always
           resources:
-            limits:
-              cpu: "2"
-              memory: 3G
-              nvidia.com/gpu: "1"
-            requests:
-              cpu: "2"
-              memory: 3G
-              nvidia.com/gpu: "1"
+            limits: { cpu: "2", memory: 3G, "nvidia.com/gpu": "1" }
+            requests: { cpu: "2", memory: 3G, "nvidia.com/gpu": "1" }
         tolerations:
-        - effect: NoSchedule
-          key: nvidia.com/gpu
+        - key: nvidia.com/gpu
           operator: Exists
+          effect: NoSchedule
+    rayStartParams: {}
 EOF
 ----
-. Apply the manifest.
-+
-[.console-input]
-[source,bash]
-----
-oc apply -f team-a-job.yaml
-----
+
 
 === 4. Observe and Verify Preemption
 This is the key part of the lab. We will watch as Kueue automatically evicts Team B's workload.
@@ -446,7 +391,7 @@ Team B's pods should now be in the `Terminating` state.
 [.console-input]
 [source,bash]
 ----
-oc get pods -n team-b
+oc get pods -n team-b -w
 ----
 Team A's pods should be in the `ContainerCreating` or `Running` state.
 [.console-input]
@@ -456,12 +401,12 @@ oc get pods -n team-a
 ----
 --
 
-. To see the explicit preemption message, describe Team B's workload.
+. To see the explicit preemption message, describe Team B's workload **change the name of the workload to the right one**.
 +
 [.console-input]
 [source,bash]
 ----
-oc describe workload -n team-b raycluster-dev
+oc describe workload -n team-b **raycluster-raycluster-dev**
 ----
 +
 Look for the `Events` section at the bottom. You will see a clear message stating that the workload was **Evicted** because it was preempted by the higher-priority workload.
@@ -470,9 +415,11 @@ Look for the `Events` section at the bottom. You will see a clear message statin
 [source,text]
 ----
 Events:
-  Type    Reason   Age   From   Message
-  ----    ------   ----  ----   -------
-  Normal  Evicted  25s   kueue  Preempted by workload team-a/raycluster-prod
+  Type     Reason         Age    From             Message
+  ----     ------         ----   ----             -------
+  Normal   Preempted      2m16s  kueue-admission  Preempted to accommodate a workload (UID: 8b76853e-b03f-4dee-a57e-0a9157b5c8a3, JobUID: 4a7827c1-20c9-461e-b369-5e5d029630ff) due to reclamation within the cohort while borrowing
+  Warning  Pending        103s   kueue-admission  Workload no longer fits after processing another workload
+  Warning  Pending        103s   kueue-admission  couldn't assign flavors to pod set worker-group: insufficient unused quota for cpu in flavor default-flavor, 2 more needed
 ----
 
 === Cleanup
@@ -491,7 +438,19 @@ oc delete ns team-a team-b
 [.console-input]
 [source,bash]
 ----
-oc delete -f kueue-preemption-setup.yaml
+#!/bin/sh
+
+echo "Deleting all rayclusters"
+oc delete raycluster --all --all-namespaces > /dev/null
+
+echo "Deleting all localqueue"
+oc delete localqueue --all --all-namespaces > /dev/null
+
+echo "Deleting all clusterqueues"
+oc delete clusterqueue --all --all-namespaces > /dev/null
+
+echo "Deleting all resourceflavors"
+oc delete resourceflavor --all --all-namespaces > /dev/null
 ----
 
 == Conclusion
