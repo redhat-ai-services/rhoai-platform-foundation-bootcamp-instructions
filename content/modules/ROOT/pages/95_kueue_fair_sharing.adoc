@@ -151,9 +151,9 @@ spec:
   preemption:
     reclaimWithinCohort: Any
     borrowWithinCohort:
-      policy: LowerPriority
+      policy: LowerPriority # Preempt lower-priority workloads in the cohort
       maxPriorityThreshold: 100
-    withinClusterQueue: LowerPriority # This policy enables preemption
+    withinClusterQueue: LowerPriority # Reclaim from lower-priority workloads in the cohort
   namespaceSelector:  
     matchLabels:
       kubernetes.io/metadata.name: team-a
