@@ -31,6 +31,8 @@ The Git URL provided in the following command is a placeholder. Remember to chan
 [source,bash]
 ----
 git clone https://github.com/shebistar/ai-accelerator.git --single-branch --branch rhoai-2.22-gpu-as-a-service-overlay ai-accelerator-gpu   # TODO: Change to official repo when available
+=======
+
 cd ai-accelerator-gpu
 ----
 
