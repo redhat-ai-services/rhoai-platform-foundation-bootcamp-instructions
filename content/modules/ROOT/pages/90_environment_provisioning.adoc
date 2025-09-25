@@ -38,7 +38,6 @@ cd ai-accelerator-gpu
 
 == Execute the bootstrap script
 . Run the bootstrap script to set up the environment. This script will handle the installation of necessary components and configurations.
-. Follow the instructions provided in the xref:07_installation.adoc#_bootstrap_the_gpu_cluster[Bootstrap the GPU Cluster] document to complete the installation process.
 . When prompted, select the option containing `rhoai-stable-2.22-aws-gpu-time-sliced`.
 +
 [.console-input]
