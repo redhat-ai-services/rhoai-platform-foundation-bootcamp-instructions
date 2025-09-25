@@ -48,9 +48,8 @@ oc adm taint nodes <your-gpu-node-name> nvidia.com/gpu=Exists:NoSchedule --overw
 
 First, apply all the necessary configuration objects. This includes namespaces, resource flavors, and the Kueue queues with the correct quotas and preemption policies.
 
-. Save the entire block of YAML below to a file named `kueue-preemption-setup.yaml`.
+. Run the following on the terminal to create the `namespaces` and resources needed for the `Lab`.
 +
-.kueue-preemption-setup.yaml
 [.console-input]
 [source,yaml]
 ----
@@ -254,9 +253,8 @@ You should see `team-a-cq`, `team-b-cq`, and `shared-cq` listed with a status of
 === 2. Deploy the Low-Priority Workload (Team B)
 Now, acting as Team B, submit a `RayCluster` job. This job requests 4 CPU cores, consuming the entire shared quota.
 
-. Create a file named `team-b-job.yaml` with the following content.
+. Let's create the  `Team B Ray Cluster` using the following command on the terminal.
 +
-.team-b-job.yaml
 [.console-input]
 [source,yaml]
 ----
@@ -321,9 +319,8 @@ At this point, Team B's job has successfully claimed all 4 CPUs from the shared 
 === 3. Deploy the High-Priority Workload (Team A)
 Next, as Team A, submit a `RayCluster` that requires a GPU and 4 CPU cores. Since the CPU pool is full, Kueue must preempt Team B's job.
 
-. Create a file named `team-a-job.yaml`.
+. Let's create the `Team A Ray Cluster` using the following command on the terminal.
 +
-.team-a-job.yaml
 [.console-input]
 [source,yaml]
 ----
