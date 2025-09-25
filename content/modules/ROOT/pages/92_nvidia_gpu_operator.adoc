@@ -423,7 +423,6 @@ image::92-resource-request-hw-profile.png[]
 
 * *Click on `Create Hardware Profile`*.
 
-
 [WARNING]
 .Accelerator Profiles are deprecated 
 ====
