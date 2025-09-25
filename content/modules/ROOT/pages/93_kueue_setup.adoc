@@ -1,4 +1,4 @@
-= Lab Guide: Advanced GPU Quota Management and Preemption with Kueue
+= Red Hat build of Kueue Operator Setup
 :icons: font
 :stem: latexmath
 :icons: font
