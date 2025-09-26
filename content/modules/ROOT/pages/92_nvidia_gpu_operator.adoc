@@ -488,11 +488,9 @@ image::92-rhoai-project-gpuaas.png[]
 +
 image::92-create-data-connection.png[]
 
-. Deploy a Model within the `granite` project (go to `Models` -> `Single-model serving platform` -> `Deploy Model`):
+. Deploy a Model within the `granite` project (go to `Models` -> `Single-model serving platform` -> `Deploy Model`), using the new HardwareProfile created beforehand `small`:
 +
-image::92-create-model.png[]
 
-. Deploy a Model within the `granite` project using the new `HardwareProfile` created beforehand `small`:
 +
 [CAUTION]
 .Pod will stay `Pending` forever
