@@ -1,4 +1,4 @@
-= Lab Guide: Advanced GPU Quota Management and Preemption with Kueue
+= Red Hat build of Kueue Operator Setup
 :icons: font
 :stem: latexmath
 :icons: font
@@ -117,7 +117,7 @@ NAME                                   READY   STATUS    RESTARTS   AGE
 kueue-controller-xxxxxx-yyyyy            1/1     Running   0          2m
 ----
 
-. Create the global `Kueue` custom resource (CR) named `cluster`. This configures Kueue's overall behavior, including enabling preemption with a `FairSharing` policy.
+. Create the global `Kueue` custom resource (CR) named `cluster`. This configures Kueue's overall behavior, including enabling preemption with a `Classical` policy.
 +
 [.console-input]
 [source,bash]
@@ -137,8 +137,19 @@ spec:
     integrations:
       frameworks:
       - BatchJob
+      - MPIJob
+      - RayJob
+      - RayCluster
+      - JobSet
+      - Pod
+      - PaddleJob
+      - PyTorchJob
+      - TFJob
+      - XGBoostJob
+      - Deployment
+      - AppWrapper
     preemption:
-      preemptionPolicy: FairSharing
+      preemptionPolicy: Classical
 EOF
 ----
 
@@ -317,7 +328,7 @@ kueue-kueueviz-frontend-xxxxxx-zzzzz      1/1     Running   0          2m
 
 [WARNING]
 ====
-In case you are having issues with the scheduling of the pods, you can try to increase the number of workers in your cluster. (via MachineSet in the OpenShift Web Console).
+In case you are having issues with the scheduling of the pods, you can try to increase the number of workers in your cluster. (via `MachineSets` -> Instance type `m6a.4xlarge` -> `Edit Machine Count` -> `2` in the OpenShift Web Console).
 ====
 
 

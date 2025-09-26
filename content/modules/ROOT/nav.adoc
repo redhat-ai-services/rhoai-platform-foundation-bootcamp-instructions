@@ -46,12 +46,12 @@
     ** 24. xref:disconnected_install.adoc[RHOAI on Disconnected Environment]
 
 * GPU as a Service
-    ** 26. xref:90_environment_provisioning.adoc[Environment Provisioning]
-    ** 27. xref:91_gpu_as_a_service_intro.adoc[Introduction]
-    ** 28. xref:92_nvidia_gpu_operator.adoc[NVIDIA GPU Operator]
-    ** 29. xref:93_kueue_setup.adoc[Kueue setup]
-    ** 30. xref:94_kueue_gpu_pricing_tier.adoc[Kueue GPU pricing tiers]
-    ** 31. xref:95_kueue_fair_sharing.adoc[Kueue Distributed Workloads]
+    ** 26. xref:90_environment_provisioning.adoc[Provisioning a GPU Environment with NVIDIA A10G Tensor Core GPU]
+    ** 27. xref:91_gpu_as_a_service_intro.adoc[Introduction: GPU as a Service with GPU slicing and Kueue]
+    ** 28. xref:92_nvidia_gpu_operator.adoc[Configuring NVIDIA GPU Time-Slicing on OpenShift]
+    ** 29. xref:93_kueue_setup.adoc[Red Hat build of Kueue Operator Setup]
+    ** 30. xref:94_kueue_gpu_pricing_tier.adoc[Implementing GPU Pricing Tiers with Kueue]
+    ** 31. xref:95_kueue_fair_sharing.adoc[Advanced GPU Quota Management and Preemption with Kueue]
 
 * 29. xref:99_useful_tips.adoc[Useful Tips]
 * 30. xref:97_syncing_fork.adoc[Syncing Forked Project]

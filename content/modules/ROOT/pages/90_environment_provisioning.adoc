@@ -18,12 +18,6 @@ This lab provides instructions for provisioning a GPU environment on AWS using t
 . *Monitoring:* Enable GPU monitoring by creating and applying a specific `ConfigMap`. This will add the https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/enable-gpu-monitoring-dashboard.html#configuring-the-nvidia-dcgm-exporter-dashboard[NVIDIA DCGM Exporter Dashboard] to the OpenShift console.
 . *GPU Operator Plugin:* Follow additional instructions to configure a https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/openshift/enable-gpu-op-dashboard.html#enable-the-gpu-operator-dashboard[console plugin for GPU usage information, window=_blank].
 
-[WARNING]
-.Expected Issue and Resolution
-====
-If you encounter an issue where the OpenShift AI Operator is not installed, see the <<workaround>> section for a resolution.
-====
-
 == Install the AWS Environment
 Follow the instructions in the xref:05_environment_provisioning.adoc[RHOAI Foundation Bootcamp: Provisioning a GPU Environment] to set up your AWS environment.
 
@@ -36,13 +30,12 @@ The Git URL provided in the following command is a placeholder. Remember to chan
 [.console-input]
 [source,bash]
 ----
-git clone git@github.com:shebistar/ai-accelerator.git --single-branch --branch rhoai-2.22-gpu-as-a-service-overlay ai-accelerator-gpu          # TODO: Change to official repo once it becomes available
+git clone https://github.com/shebistar/ai-accelerator.git --single-branch --branch rhoai-2.22-gpu-as-a-service-overlay ai-accelerator-gpu   
 cd ai-accelerator-gpu
 ----
 
 == Execute the bootstrap script
 . Run the bootstrap script to set up the environment. This script will handle the installation of necessary components and configurations.
-. Follow the instructions provided in the xref:07_installation.adoc#_bootstrap_the_gpu_cluster[Bootstrap the GPU Cluster] document to complete the installation process.
 . When prompted, select the option containing `rhoai-stable-2.22-aws-gpu-time-sliced`.
 +
 [.console-input]
@@ -70,6 +63,14 @@ You can now browse to the OpenShift console and see that the cluster is up and r
 ====
 It will take some time for the new GPU nodes to appear. The infrastructure is first provisioned in AWS. You can monitor the progress by navigating to *Compute -> Machines* to verify that the new machines are being created. Once provisioned, they will appear under *Compute -> Nodes*.
 ====
+
+[WARNING]
+.Expected Issue and Resolution
+====
+If you encounter an issue where the OpenShift AI Operator is not installed, see the <<workaround>> section for a resolution.
+====
+
+
 
 [.bordershadow]
 image::gpunodes.png[]
