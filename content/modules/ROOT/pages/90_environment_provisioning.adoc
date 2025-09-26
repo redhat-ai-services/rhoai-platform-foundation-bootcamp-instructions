@@ -25,7 +25,7 @@ Follow the instructions in the xref:05_environment_provisioning.adoc[RHOAI Found
 Clone the RHOAI GitHub repository to your local machine and check out the correct branch.
 
 [IMPORTANT]
-The Git URL provided in the following command is a placeholder. Remember to change it to the official repository URL when it becomes available.
+The Git URL provided in the following command is specific to this bootcamp and may not be the same as the one used in other contexts. Ensure you use the exact URL and branch name as shown below.
 
 [.console-input]
 [source,bash]
@@ -50,7 +50,7 @@ image::select-overlay.png[]
 [TIP]
 .Interactive Script
 ====
-When the script asks you to update the branch to match your working branch, please do so, selecting option 1 in both prompts.
+If the script asks you to update the branch to match your working branch, please do so, selecting option 1 in both prompts.
 ====
 
 [.bordershadow]
@@ -62,6 +62,8 @@ You can now browse to the OpenShift console and see that the cluster is up and r
 .Be Patient
 ====
 It will take some time for the new GPU nodes to appear. The infrastructure is first provisioned in AWS. You can monitor the progress by navigating to *Compute -> Machines* to verify that the new machines are being created. Once provisioned, they will appear under *Compute -> Nodes*.
+
+You can check in ArgoCD that the OpenShift AI Operator is being installed. Navigate to the OpenShift GitOps console, select the `openshift-ai-operator` application, and monitor the synchronization status.
 ====
 
 [WARNING]
