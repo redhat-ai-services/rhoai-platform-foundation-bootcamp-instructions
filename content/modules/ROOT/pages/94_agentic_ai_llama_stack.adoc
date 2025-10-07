@@ -161,7 +161,7 @@ Save this file as `namespace.yaml` and apply it using `oc apply -f namespace.yam
 
 2. Create MAAS API Keys.
 +
-Go to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for the Llama 3 as well as Llama 4 models.
+Go to link:https://red.ht/maas[Model as a Service (MaaS)] and login using your Red Hat credentials to get an API token for the Llama 3 as well as Llama 4 models.
 +
 
 3. Create Teavily API Keys.
@@ -228,6 +228,7 @@ data:
     - safety
     - tool_runtime
     - vector_io
+    - files
     models:
       - metadata: {}
         model_id: llama-3-2-3b
@@ -239,7 +240,28 @@ data:
         provider_id: vllm-llama-4-guard
         provider_model_id: llama-4-scout-17b-16e-w4a16
         model_type: llm
+      - metadata:
+          embedding_dimension: 768
+        model_id: ibm-granite/granite-embedding-125m-english
+        provider_id: sentence-transformers
+        model_type: embedding
     providers:
+      files:
+      - provider_id: localfs
+        provider_type: inline::localfs
+        config:
+          storage_dir: /opt/app-root/src/.llama/files
+          metadata_store:
+            type: sqlite
+            db_path: /opt/app-root/src/.llama/files_metadata.db
+      vector_io:
+      - provider_id: milvus
+        provider_type: inline::milvus
+        config:
+          db_path: /opt/app-root/src/.llama/milvus.db
+          kvstore:
+            type: sqlite
+            db_path: /opt/app-root/src/.llama/milvus_registry.db
       agents:
       - provider_id: meta-reference
         provider_type: inline::meta-reference
@@ -251,6 +273,9 @@ data:
             type: sqlite
             db_path: ${env.SQLITE_STORE_DIR:=~/.llama/distributions/starter}/responses_store.db
       inference:
+      - provider_id: sentence-transformers
+        provider_type: inline::sentence-transformers
+        config: {}
       - provider_id: vllm-llama-3-2-3b
         provider_type: "remote::vllm"
         config:
@@ -266,6 +291,9 @@ data:
           api_token: ${env.LLAMA_4_SCOUT_17B_16E_W4A16_API_TOKEN}
           tls_verify: true
       tool_runtime:
+      - config: {}
+        provider_id: rag-runtime
+        provider_type: inline::rag-runtime
       - provider_id: model-context-protocol
         provider_type: remote::model-context-protocol
         config: {}
@@ -278,12 +306,25 @@ data:
       - name: builtin::websearch
         enabled: true
     tool_groups:
+    - toolgroup_id: builtin::rag
+      provider_id: rag-runtime
+      args:
+        vector_db_ids: ["default-vector-db"]
     - provider_id: tavily-search
       toolgroup_id: builtin::websearch
     - toolgroup_id: mcp::openshift
       provider_id: model-context-protocol
       mcp_endpoint:
         uri: http://ocp-mcp-server.ocp-mcp.svc.cluster.local:8000/sse
+    shields: []
+    vector_dbs:
+      - vector_db_id: default-vector-db
+        provider_id: milvus
+        embedding_model: ibm-granite/granite-embedding-125m-english
+        embedding_dimension: 768
+    datasets: []
+    scoring_fns: []
+    benchmarks: []
     server:
       port: 8321
 ----
@@ -471,7 +512,7 @@ client_mutli = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLA
 agent_multi = Agent(
     client_mutli,
     model="llama-4-scout-17b-16e-w4a16",
-    instructions="You are an assistant helping to debug openshift cluster issues. Always backup your findings by using the websearch tool",
+    instructions="You are an assistant helping to debug openshift cluster issues",
     tools=[
         "mcp::openshift",
         "builtin::websearch"
@@ -485,19 +526,230 @@ agent_multi = Agent(
 session_multi = agent_multi.create_session("monitored_session")
 ----
 
+Lets apply a broken pod and let the agent investigate it:
+[.console-input]
+[source,python]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fail-crash-loop
+  namespace: default
+spec:
+  containers:
+    - name: alpine
+      image: alpine:3.19
+      command: ["sh", "-c", "exit 1"] # Always exits with failure
+----
+
+
 Its now possible to ask the agent questions about the openshift cluster and its able to receive data via the mcp server:
 [.console-input]
 [source,python]
 ----
-response = agent_multi.create_turn(
-    messages=[{"role": "user", "content": "Search for pods having problems in the default namespace using the openshift mcp. If you find one, search for fixes using the websearch"}],
-    session_id=session_multi,
-)
-
-for log in AgentEventLogger().log(response):
-    log.print()
+messages=[{"role": "user", "content": "Search for pods having problems in the default namespace using the openshift mcp. If you find one, search for fixes using the websearch"},
+          {"role": "user", "content": "Which pods are not running?"},
+          {"role": "user", "content": "What can i do to stop the pod from failing?"}
+         ]
+for message in messages: 
+    response = agent_multi.create_turn(
+      messages=[message],
+        session_id=session_multi,
+    )
+    
+    for log in AgentEventLogger().log(response):
+        log.print()
 ----
 
+
+=== *2.5 Llama Stack Playground*
+
+[.console-input]
+[source,python]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llama-stack-playground
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: llama-stack-playground
+  labels:
+    helm.sh/chart: llama-stack-playground-1.0.0
+    app.kubernetes.io/name: llama-stack-playground
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"llama-stack-playground"}}'
+---
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:openshift:scc:anyuid
+roleRef:
+  name: system:openshift:scc:anyuid
+subjects:
+- kind: ServiceAccount
+  name: llama-stack-playground
+  namespace: llama-stack-playground
+userNames:
+- system:serviceaccount:llama-stack-playground:llama-stack-playground
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llama-stack-playground
+  labels:
+    helm.sh/chart: llama-stack-playground-1.0.0
+    app.kubernetes.io/name: llama-stack-playground
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: proxy-tls
+spec:
+  type: ClusterIP
+  ports:
+    - name: proxy
+      port: 443
+      targetPort: 8443
+  selector:
+    app.kubernetes.io/name: llama-stack-playground
+    app.kubernetes.io/instance: release-name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-stack-playground
+  labels:
+    helm.sh/chart: llama-stack-playground-1.0.0
+    app.kubernetes.io/name: llama-stack-playground
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: llama-stack-playground
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: llama-stack-playground
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: llama-stack-playground
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: oauth-proxy
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          image: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9@sha256:f55b6d17e2351b32406f72d0e877748b34456b18fcd8419f19ae1687d0dce294
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8443
+              name: public
+          args:
+            - --https-address=:8443
+            - --provider=openshift
+            - --openshift-service-account=llama-stack-playground
+            - --upstream=http://localhost:8501
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --cookie-secret=SECRET
+          volumeMounts:
+            - mountPath: /etc/tls/private
+              name: proxy-tls
+        - name: llama-stack-playground
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          image: "quay.io/rh_ee_anixel/llama-stack-playground:0.0.4"
+          command:
+            - streamlit
+            - run
+            - /llama_stack/core/ui/app.py
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8501
+            name: http
+            protocol: TCP
+          env:
+            - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+              value: "false"
+            - name: STREAMLIT_SERVER_ADDRESS
+              value: "0.0.0.0"
+            - name: STREAMLIT_SERVER_PORT
+              value: "8501"
+            - name: LLAMA_STACK_ENDPOINT
+              value: "http://llamastack-with-config-service.llama-stack:8321"
+            - name: DEFAULT_MODEL
+              value: "granite-31-2b-instruct"
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+      - name: proxy-tls
+        secret:
+          secretName: proxy-tls
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: llama-stack-playground
+  labels:
+    helm.sh/chart: llama-stack-playground-1.0.0
+    app.kubernetes.io/name: llama-stack-playground
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  to:
+    kind: Service
+    name: llama-stack-playground
+    weight: 100
+  port:
+    targetPort: proxy
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+----
 
 
 == *3. References*
