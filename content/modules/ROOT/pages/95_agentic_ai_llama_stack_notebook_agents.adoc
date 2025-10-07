@@ -1,0 +1,176 @@
+= *Lab Guide: Exploring Agentic AI using LlamaStack*
+:stem: latexmath
+:icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
+
+
+== Agentic AI Agents with Llama Stack Clients
+
+In the next steps we are going to create multiple Agents using the llama stack client python package. All agents will be defined within the same Jupyter Notebook.
+
+=== Notebook Setup
+
+1.  Within a workbench of your choice, open a new notebook.
+
+2.  First, install the `llama-stack` client library:
++
+[.console-input]
+[source,python]
+----
+!pip install -qq llama-stack
+----
+
+3.  Import the necessary libraries:
++
+[.console-input]
+[source,python]
+----
+import os
+from llama_stack_client import LlamaStackClient, Agent, AgentEventLogger
+from rich.pretty import pprint
+----
++
+
+4.  Define the connection details for the Llama Stack server. By default, this will use the internal Kubernetes service name.
++
+[.console-input]
+[source,python]
+----
+LLAMA_STACK_SERVER_HOST = os.getenv("LLAMA_STACK_SERVER_HOST", "llamastack-with-config-service.llama-stack.svc.cluster.local")
+LLAMA_STACK_SERVER_PORT = os.getenv("LLAMA_STACK_SERVER_PORT", "8321")
+----
+
+=== Agent 1 - Web Search
+
+Instantiate the client and create an agent. This agent is configured to use the `llama-4-scout-17b-16e-w4a16` model and has access to both the web search.
+[.console-input]
+[source,python]
+----
+client_webserach = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
+
+agent_websearch = Agent(
+    client_webserach,
+    model="llama-4-scout-17b-16e-w4a16",
+    instructions="You are a helpful assistant",
+    tools=[
+        "builtin::websearch",
+    ],
+    max_infer_iters=5,
+    sampling_params={
+        "strategy": {"type": "top_p", "temperature": 0.1, "top_p": 0.95},
+    },
+)
+session_websearch = agent_websearch.create_session("monitored_session")
+----
+
+Now you can ask the agent questions. This first example uses the web search tool to find the current OpenShift release.
+[.console-input]
+[source,python]
+----
+response = agent_websearch.create_turn(
+    messages=[{"role": "user", "content": "Whats the current openshift release?"}],
+    session_id=session_websearch,
+)
+
+for log in AgentEventLogger().log(response):
+    log.print()
+----
+
+=== Agent 2 - Openshift MCP Server
+
+The second agent we create has access to the openshift MCP Server to retrieve openshift api information
+[.console-input]
+[source,python]
+----
+client_mcp = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
+
+agent_mcp = Agent(
+    client_mcp,
+    model="llama-3-2-3b",
+    instructions="You are a helpful assistant",
+    tools=[
+        "mcp::openshift"
+    ],
+    max_infer_iters=5,
+    sampling_params={
+        "strategy": {"type": "top_p", "temperature": 0.1, "top_p": 0.95},
+        "max_tokens": 8000,
+    },
+)
+session_mcp = agent_mcp.create_session("monitored_session")
+----
+
+Its now possible to ask the agent questions about the openshift cluster and its able to receive data via the mcp server:
+[.console-input]
+[source,python]
+----
+response = agent_mcp.create_turn(
+    messages=[{"role": "user", "content": "What namespaces are existing inside the cluster?"}],
+    session_id=session_mcp,
+)
+
+for log in AgentEventLogger().log(response):
+    log.print()
+----
+
+=== Agent 3 - Websearch & MCP
+
+The third agent we create has access to the mcp server as well as the web search.
+[.console-input]
+[source,python]
+----
+client_mutli = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
+
+agent_multi = Agent(
+    client_mutli,
+    model="llama-4-scout-17b-16e-w4a16",
+    instructions="You are an assistant helping to debug openshift cluster issues",
+    tools=[
+        "mcp::openshift",
+        "builtin::websearch"
+    ],
+    max_infer_iters=5,
+    sampling_params={
+        "strategy": {"type": "top_p", "temperature": 0.1, "top_p": 0.95},
+        "max_tokens": 8000,
+    },
+)
+session_multi = agent_multi.create_session("monitored_session")
+----
+
+Lets apply a broken pod and let the agent investigate it:
+[.console-input]
+[source,python]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fail-crash-loop
+  namespace: default
+spec:
+  containers:
+    - name: alpine
+      image: alpine:3.19
+      command: ["sh", "-c", "exit 1"] # Always exits with failure
+----
+
+
+Its now possible to ask the agent questions about the openshift cluster and its able to receive data via the mcp server:
+[.console-input]
+[source,python]
+----
+messages=[{"role": "user", "content": "Search for pods having problems in the default namespace using the openshift mcp. If you find one, search for fixes using the websearch"},
+          {"role": "user", "content": "Which pods are not running?"},
+          {"role": "user", "content": "What can i do to stop the pod from failing?"}
+         ]
+for message in messages: 
+    response = agent_multi.create_turn(
+      messages=[message],
+        session_id=session_multi,
+    )
+    
+    for log in AgentEventLogger().log(response):
+        log.print()
+----
