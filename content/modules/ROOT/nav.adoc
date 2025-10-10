@@ -54,9 +54,9 @@
     ** 31. xref:95_kueue_fair_sharing.adoc[Advanced GPU Quota Management and Preemption with Kueue]
 
 * Agentic AI with Llama Stack
-    ** 30. xref:94_agentic_ai_llama_stack_introduction.adoc[Introduction & Setup]
-    ** 30. xref:95_agentic_ai_llama_stack_notebook_agents.adoc[Agentic AI Agents with Llama Stack Clients]
-    ** 31. xref:96_agentic_ai_llama_stack_playground.adoc.adoc[Llama Stack Playground]
+    ** 30. xref:97_agentic_ai_llama_stack_introduction.adoc[Introduction & Setup]
+    ** 30. xref:98_agentic_ai_llama_stack_notebook_agents.adoc[Agentic AI Agents with Llama Stack Clients]
+    ** 31. xref:99_agentic_ai_llama_stack_playground.adoc.adoc[Llama Stack Playground]
 
-* 40. xref:99_useful_tips.adoc[Useful Tips]
-* 41. xref:97_syncing_fork.adoc[Syncing Forked Project]
+* 40. xref:110_useful_tips.adoc[Useful Tips]
+* 41. xref:111_syncing_fork.adoc[Syncing Forked Project]
