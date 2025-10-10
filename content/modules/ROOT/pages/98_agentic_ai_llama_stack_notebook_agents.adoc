@@ -44,14 +44,14 @@ LLAMA_STACK_SERVER_PORT = os.getenv("LLAMA_STACK_SERVER_PORT", "8321")
 
 === Agent 1 - Web Search
 
-Instantiate the client and create an agent. This agent is configured to use the `llama-4-scout-17b-16e-w4a16` model and has access to both the web search.
+Instantiate the client and create an agent. This agent is configured to use the `llama-4-scout-17b-16e-w4a16` model and has access to the web search too.
 [.console-input]
 [source,python]
 ----
-client_webserach = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
+client_websearch = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
 
-agent_websearch = Agent(
-    client_webserach,
+client_websearch = Agent(
+    client_websearch,
     model="llama-4-scout-17b-16e-w4a16",
     instructions="You are a helpful assistant",
     tools=[
@@ -70,7 +70,7 @@ Now you can ask the agent questions. This first example uses the web search tool
 [source,python]
 ----
 response = agent_websearch.create_turn(
-    messages=[{"role": "user", "content": "Whats the current openshift release?"}],
+    messages=[{"role": "user", "content": "Whats the current OpenShift release?"}],
     session_id=session_websearch,
 )
 
@@ -78,16 +78,16 @@ for log in AgentEventLogger().log(response):
     log.print()
 ----
 
-=== Agent 2 - Openshift MCP Server
+=== Agent 2 - OpenShift MCP Server
 
-The second agent we create has access to the openshift MCP Server to retrieve openshift api information
+The second agent we create has access to the OpenShift MCP Server to retrieve OpenShift api information
 [.console-input]
 [source,python]
 ----
-client_mcp = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
+client_mcp_ocp = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLAMA_STACK_SERVER_PORT}")
 
-agent_mcp = Agent(
-    client_mcp,
+agent_mcp_ocp = Agent(
+    client_mcp_ocp,
     model="llama-3-2-3b",
     instructions="You are a helpful assistant",
     tools=[
@@ -99,16 +99,16 @@ agent_mcp = Agent(
         "max_tokens": 8000,
     },
 )
-session_mcp = agent_mcp.create_session("monitored_session")
+session_mcp_ocp = agent_mcp_ocp.create_session("monitored_session")
 ----
 
-Its now possible to ask the agent questions about the openshift cluster and its able to receive data via the mcp server:
+It's now possible to ask the agent questions about the OpenShift cluster and the agent is able to receive data via the MCP server:
 [.console-input]
 [source,python]
 ----
-response = agent_mcp.create_turn(
+response = agent_mcp_ocp.create_turn(
     messages=[{"role": "user", "content": "What namespaces are existing inside the cluster?"}],
-    session_id=session_mcp,
+    session_id=session_mcp_ocp,
 )
 
 for log in AgentEventLogger().log(response):
@@ -126,7 +126,7 @@ client_mutli = LlamaStackClient(base_url=f"http://{LLAMA_STACK_SERVER_HOST}:{LLA
 agent_multi = Agent(
     client_mutli,
     model="llama-4-scout-17b-16e-w4a16",
-    instructions="You are an assistant helping to debug openshift cluster issues",
+    instructions="You are an assistant helping to debug OpenShift cluster issues",
     tools=[
         "mcp::openshift",
         "builtin::websearch"
@@ -157,11 +157,11 @@ spec:
 ----
 
 
-Its now possible to ask the agent questions about the openshift cluster and its able to receive data via the mcp server:
+Its now possible to ask the agent questions about the OpenShift cluster and its able to receive data via the mcp server:
 [.console-input]
 [source,python]
 ----
-messages=[{"role": "user", "content": "Search for pods having problems in the default namespace using the openshift mcp. If you find one, search for fixes using the websearch"},
+messages=[{"role": "user", "content": "Search for pods having problems in the default namespace using the OpenShift mcp. If you find one, search for fixes using the websearch"},
           {"role": "user", "content": "Which pods are not running?"},
           {"role": "user", "content": "What can i do to stop the pod from failing?"}
          ]

@@ -74,7 +74,7 @@ References:
 
 *   You have access to a Red Hat OpenShift AI environment.
 *   You have access to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for LLM models.
-*   You have access to link:https://www.tavily.com/[Teavily] to get an API token for the websearch tool.
+*   You have access to link:https://www.tavily.com/[Tavily] to get an API token for the websearch tool.
 *   The LlamaStack operator is enabled and running in the cluster.
 
 
@@ -135,9 +135,9 @@ Your "Apps and API Keys" page should look like the following:
 image::agentic_ai_maas.png[]
 
 
-=== Create Teavily API Keys.
+=== Create Tavily API Keys.
 
-Go to link:https://www.tavily.com/[Teavily] to register and create an API token.
+Go to link:https://www.tavily.com/[Tavily] to register and create an API token. We will use Tavily for general Web inquiries as it provides API for web searches. 
 
 === Llama stack server secret
 
