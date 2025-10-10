@@ -53,5 +53,10 @@
     ** 30. xref:94_kueue_gpu_pricing_tier.adoc[Implementing GPU Pricing Tiers with Kueue]
     ** 31. xref:95_kueue_fair_sharing.adoc[Advanced GPU Quota Management and Preemption with Kueue]
 
-* 29. xref:99_useful_tips.adoc[Useful Tips]
-* 30. xref:97_syncing_fork.adoc[Syncing Forked Project]
+* Agentic AI with Llama Stack
+    ** 30. xref:94_agentic_ai_llama_stack_introduction.adoc[Introduction & Setup]
+    ** 30. xref:95_agentic_ai_llama_stack_notebook_agents.adoc[Agentic AI Agents with Llama Stack Clients]
+    ** 31. xref:96_agentic_ai_llama_stack_playground.adoc.adoc[Llama Stack Playground]
+
+* 40. xref:99_useful_tips.adoc[Useful Tips]
+* 41. xref:97_syncing_fork.adoc[Syncing Forked Project]
