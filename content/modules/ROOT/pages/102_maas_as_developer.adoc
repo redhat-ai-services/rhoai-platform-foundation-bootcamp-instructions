@@ -7,7 +7,7 @@
 
 This exercise will guide you through the process of deploying AnythingLLM as a custom workbench in OpenShift AI and configuring it to connect to a Large Language Model (LLM) that is being served via a Model-as-a-Service (MaaS) pattern with 3scale managing API access.
 
-== *Finish configuring 3Scale developer portal*
+== Finish configuring 3Scale developer portal
 
 [IMPORTANT]
 ====
@@ -51,46 +51,51 @@ oc get routes -n 3scale -o json | jq -r '.items[] | select(.spec.host | startswi
 +
 image::102_maas_as_developer_05.png[login,500] 
 
-.. Model Name
-
-
-
-
-
-Get model endpoint served by 3Scale:
-
-[.console-input]
-[source,bash]
-----
-oc get routes -n 3scale -o json | jq -r '.items[] | select(.spec.host | contains("llama-32-1b-instruct-cpu-maas-apicast-production")) | .spec.host'
-----
-
-Example:
-https://llama-32-1b-instruct-cpu-maas-apicast-production.apps.cluster-hbp92.hbp92.sandbox1781.opentlc.com/v1
-
-
-
-
-== *Ensure Model is Served via MaaS (3scale) and Obtain API Key*
+== Ensure Model is Served via MaaS (3scale) and Obtain Model Endpoint, Name and API Key
 
 *Objective*: Before you can configure AnythingLLM, you need to ensure that the LLM you wish to use is accessible through a Model-as-a-Service (MaaS) setup, specifically one that leverages 3scale for API management. You will also obtain the necessary connection details.
 
+. Get the Model URL, API Key and Model Name
++
+After login into the Developer Portal:
+* Navigate to Apps and API Keys
+* You should see one application already registered called dev1, click on it.
 
-1. Understand MaaS and 3scale's Role:
-    * Model-as-a-Service (MaaS) is the architectural pattern we explained before.
-    * 3scale acts as the primary entry point for users to quickly access AI models within the MaaS solution. It is a versatile component that authorizes and reports traffic to the model serving layer on OpenShift AI.
-2. Obtain API Key and Endpoint Details:
-    * Log in to the MaaS Platform (powered by 3scale): After logging into the MaaS platform, users can create a new application.
-    * Select the Desired AI Model: Choose the specific AI model you are interested in using.
-    * Retrieve Connection Details: The platform will instantly provide you with the necessary connection details. These include:
-        ▪ Endpoint URL
-        ▪ Model Name
-        ▪ A unique API Key, which functions as an api_key parameter or an Authorization Bearer token for your API calls.
-    * Record these details carefully, as you will need them for configuring AnythingLLM.
+image::102_maas_as_developer_11.png[] 
+
+.. Using those values copy/paste into these env variables in a terminal:
+[.console-input]
+[source,bash]
+LLAMA_ENDPOINT=...
+LLAMA_API_KEY=...
+LLAMA_MODEL=...
+
+
+.. Test the following CURL to test the model endpoint:
+[.console-input]
+[source,bash]
+curl '${LLAMA_ENDPOINT}/v1/chat/completions' \
+    -H 'accept: application/json' \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${LLAMA_API_KEY}" \
+    -d '{
+    "model": "$\{LLAMA_MODEL_NAME\}",
+    "stream": "true",
+    "messages": [
+        {
+        "role": "user",
+        "content": "Paris is a"
+        }
+    ]
+    }'
+
+[NOTE]
+This model is running on a CPU, do not expect big performance from running queries against it.
+
 
 == Step 3: Create and launch the AnythingLLM Workbench
 
-*Objective*: You will create a new workbench with AnythingLLM image.
+*Objective*: Create a new workbench with AnythingLLM image.
 
 . Access Openshift AI
 . Navigate to the Data Science Projects and open the ```LLM Host``` project 
@@ -110,21 +115,26 @@ image::102_maas_as_developer_01.png[]
 
 . Next, wait for the workbench to start, this starts a process to retrieve the image and run the pod.
 +
-image::102_maas_as_developer_04.png[] 
+image::102_maas_as_developer_06.png[startwb,300] 
 
 . When available press the workbench image to open the URL in a separate browser tab and enter ```kubeadmin``` credentials to login:
 +
-image::102_maas_as_developer_05.png[] 
+image::102_maas_as_developer_07.png[openwb,300] 
++
+image::102_maas_as_developer_08.png[startanything,300]
++
+Now let's configure AnythingLLM...
 
 == Step 4: Configure the LLM Endpoint within AnythingLLM
 
-*Objective*: This is the critical step where you connect your AnythingLLM workbench to the LLM model served by 3scale, using the API key and endpoint details obtained in Step 1.
+*Objective*: This is the critical step where you connect your AnythingLLM workbench to the LLM model served by 3scale, using the API key and endpoint details obtained in Step 2.
 
 1. Choose Provider: In the AnythingLLM configuration interface, select Generic OpenAI as the Provider from the available options.
-2. Enter Base URL: Enter the Endpoint URL you obtained from 3scale as the Base URL. This URL should typically end with /v1 (e.g., https://mistral-7b-instruct-v0-3-mycluster.com:443/v1).
+2. Enter Base URL: Enter the Endpoint URL you obtained from 3scale as the Base URL. This URL should typically end with */v1* (e.g., https://mistral-7b-instruct-v0-3-mycluster.com:443/v1).
 3. Enter API Key and Model Name: Enter the API Key and specify the Model Name that you received from 3scale.
-4. Set Token Context Window and Max Tokens: Set the Token Context Window size and Max Tokens to be generated by default. A good starting point is 1024, and you can adjust this value later within your workspaces.
+4. Set Token Context Window and Max Tokens: Set the Token Context Window size to 512 and Max Tokens to be generated to 1024.
 
+image::102_maas_as_developer_12.png[] 
 
 == Step 5: Final Setup and Interaction
 
@@ -135,7 +145,12 @@ image::102_maas_as_developer_05.png[]
 3. Create Workspace: Click on Create Workspace. This will set up a project area within AnythingLLM where you can organize different tasks and data.
 4. Start Chatting: Navigate to your newly created workspace and begin interacting with the LLM. You can now explore the various features of AnythingLLM.
 
+[NOTE]
+====
+It is expected that at this point you might get an error from the API since it is being served with a CPU and it will hit a 504 - gateway timeout presenting an error like this:
 
-image::102_maas_as_developer_06.png[] 
-image::102_maas_as_developer_07.png[] 
-image::102_maas_as_developer_08.png[] 
+image:102_maas_as_developer_13.png[llmerror,600] 
+
+
+Let's fix that by setting up a new model with GPUs in the next exercise!
+====

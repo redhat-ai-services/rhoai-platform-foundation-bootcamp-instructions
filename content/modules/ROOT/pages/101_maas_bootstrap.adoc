@@ -97,7 +97,7 @@ ADMIN_ENDPOINT=$(oc get routes -n 3scale -o json | jq -r '.items[] | select(.spe
 DEV1_USER_ID=$(curl -s GET  "${ADMIN_ENDPOINT}/admin/api/accounts.xml?access_token=${ADMIN_ACCESS_TOKEN}" | yq -r -p=xml -o=json . | jq '.accounts[][] | select(.org_name == "dev1") | .id' -r) \
 curl -X DELETE "${ADMIN_ENDPOINT}/admin/api/accounts/${DEV1_USER_ID}.xml?access_token=${ADMIN_ACCESS_TOKEN}"
 
-. Delete the *DeveloperAccount* from 3Scale operator and let Argo re-create it (monitor this in the ArgoCD UI).
+. Delete the *DeveloperAccount* from 3Scale operator and let Argo re-create it (3Scale app in argo might need re-sync).
 +
 Go to Installed Operators -> 3Scale -> All Instances and delete the DeveloperAccount
 +
