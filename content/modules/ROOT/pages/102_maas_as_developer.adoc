@@ -68,18 +68,17 @@ image::102_maas_as_developer_11.png[]
 [source,bash]
 LLAMA_ENDPOINT=...
 LLAMA_API_KEY=...
-LLAMA_MODEL=...
 
 
-.. Test the following CURL to test the model endpoint:
+.. Test the following CURL to test the model endpoint (notice how the model name is pre-populated):
 [.console-input]
 [source,bash]
-curl '${LLAMA_ENDPOINT}/v1/chat/completions' \
+curl ${LLAMA_ENDPOINT}/v1/chat/completions \
     -H 'accept: application/json' \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${LLAMA_API_KEY}" \
     -d '{
-    "model": "$\{LLAMA_MODEL_NAME\}",
+    "model": "llama-32-1b-instruct-cpu",
     "stream": "true",
     "messages": [
         {
