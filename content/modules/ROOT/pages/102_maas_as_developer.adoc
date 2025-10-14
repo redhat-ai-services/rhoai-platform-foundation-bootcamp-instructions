@@ -11,7 +11,7 @@ This exercise will guide you through the process of deploying AnythingLLM as a c
 
 [IMPORTANT]
 ====
-3Scale API Gateway has been provisioned by the AI-Accelerator-Example bootstrapped in last section. For the developer portal to be available to developers, the Administrator needs to remove a lock used to prevent developers access while making customizations. This lock is an access code that once removed will allow the developers access.
+3Scale API Gateway has been provisioned by the `ai-accelerator-example` bootstrapped in last section. For the developer portal to be available to developers, the Administrator needs to remove a lock used to prevent developers access while making customizations. This lock is an access code that once removed will allow the developers access.
 ====
 
 To get this done do the following:
@@ -51,13 +51,14 @@ oc get routes -n 3scale -o json | jq -r '.items[] | select(.spec.host | startswi
 +
 image::102_maas_as_developer_05.png[login,500] 
 
-== Ensure Model is Served via MaaS (3scale) and Obtain Model Endpoint, Name and API Key
+== Ensure Model is served via MaaS (3scale) and obtain Model Endpoint, Name and API Key
 
 *Objective*: Before you can configure AnythingLLM, you need to ensure that the LLM you wish to use is accessible through a Model-as-a-Service (MaaS) setup, specifically one that leverages 3scale for API management. You will also obtain the necessary connection details.
 
 . Get the Model URL, API Key and Model Name
 +
 After login into the Developer Portal:
+
 * Navigate to Apps and API Keys
 * You should see one application already registered called dev1, click on it.
 
@@ -92,7 +93,7 @@ curl ${LLAMA_ENDPOINT}/v1/chat/completions \
 This model is running on a CPU, do not expect big performance from running queries against it.
 
 
-== Step 3: Create and launch the AnythingLLM Workbench
+== Create and launch the AnythingLLM Workbench
 
 *Objective*: Create a new workbench with AnythingLLM image.
 
@@ -124,7 +125,7 @@ image::102_maas_as_developer_08.png[startanything,300]
 +
 Now let's configure AnythingLLM...
 
-== Step 4: Configure the LLM Endpoint within AnythingLLM
+== Configure the LLM Endpoint within AnythingLLM
 
 *Objective*: This is the critical step where you connect your AnythingLLM workbench to the LLM model served by 3scale, using the API key and endpoint details obtained in Step 2.
 
@@ -135,11 +136,11 @@ Now let's configure AnythingLLM...
 
 image::102_maas_as_developer_12.png[] 
 
-== Step 5: Final Setup and Interaction
+== Final Setup and Interaction
 
 *Objective*: Complete the AnythingLLM setup and begin using your private chatbot powered by the 3scale-served LLM.
 
-1. Set Up User Access: On the next screen, select Just me. OpenShift's authentication already secures access to your workbench, so a secondary password is not typically necessary.
+1. Set Up User Access: On the next screen, select "Just me". OpenShift's authentication already secures access to your workbench, so a secondary password is not typically necessary.
 2. Review Configuration: Review the summary screen to confirm that all your settings are correct. You may skip any brief survey if prompted.
 3. Create Workspace: Click on Create Workspace. This will set up a project area within AnythingLLM where you can organize different tasks and data.
 4. Start Chatting: Navigate to your newly created workspace and begin interacting with the LLM. You can now explore the various features of AnythingLLM.

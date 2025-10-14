@@ -7,12 +7,12 @@ Now that you have seen a bit of 3Scale, it is time to put a new model in there b
 For this we'll use another ai-accelerator-example named *vllm-modelcar-serverless*. Follow these steps:
 
 . Go to your terminal on the ai-accelerator-examples repo you previously cloned.
-. Run *./bootstrap.sh*
-. Select this time the example vllm-modelcar-serverless, number 5 in this output:
+. Run `./bootstrap.sh`
+. Select this time the example `vllm-modelcar-serverless`, number 5 in this output:
 +
 image::103_maas_as_platform_engineer_01.png[] 
 
-. This will create a new project vllm-modelcar-serverless where a new InferenceService will be created for the granite-3.3-2b-instruct model. It might take up to 10mins or more before the model is ready since this will trigger a GPU node auto-scale. Meanwhile we can continue configuring 3Scale.
+. This will create a new project `vllm-modelcar-serverless` where a new `InferenceService` will be created for the `granite-3.3-2b-instruct` model. It might take up to 10mins or more before the model is ready, since this will trigger a GPU node auto-scale. Meanwhile we can continue configuring 3Scale.
 
 == Add a new backend & product to 3Scale
 
@@ -44,7 +44,7 @@ oc get routes -n 3scale -o json | jq -r '.items[] | select(.spec.host | contains
 +
 .. Go to Audience -> Accounts -> Listing -> dev1 -> Service Subscriptions
 
-image::103_maas_as_platform_engineer_02.png[subscribe,500] 
+image::103_maas_as_platform_engineer_02.png[subscribe,800] 
 
 .. Click subscribe in the *granite-3.3-2b-instruct* available service subscription.
 
@@ -58,5 +58,5 @@ image::103_maas_as_platform_engineer_04.png[createapp, 500]
 
 You should be able to see a new application with its key that can be used in AnythingLLM.
 
-Steps here: xref:102_maas_as_developer.adoc[Developer portal Model url, key and name]
+You can achieve that by following steps in previoussection: xref:102_maas_as_developer.adoc[Developer portal Model url, key and name] 
 

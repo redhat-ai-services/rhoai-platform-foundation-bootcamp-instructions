@@ -22,7 +22,7 @@ My preferred way to monitor the bootstrap is look at the Workloads->Pods with Al
 
 == Clone ai-accelerator-examples repo
 
-Now is time to explore the new form of adding runnable examples on your Openshift AI cluster you have provisioned. The overall goal of ai-examples is to be able to add new configs on top of an existing RHOAI cluster where we can quickly experiment and of course re-use these manifests for demos/quick-starts with the beauty of infra as code but I don't need to sell you on that, right?
+Now is time to explore the new form of adding runnable examples on your OpenShift AI cluster you have provisioned. The overall goal of `ai-examples` is to be able to add new configs on top of an existing RHOAI cluster, where we can quickly experiment and of course re-use these manifests for `demos/quick-starts` with the beauty of "infra as code", but I don't need to sell you on that, right?
 
 This repo is in a different place, let's clone it:
 
@@ -64,7 +64,7 @@ Using repository branch: main
 
 . Then select ```models-as-a-service-3scale``` example to deploy (number 3 in this output)
 +
-image::101_maas_bootstrap_01.png[example,700] 
+image::101_maas_bootstrap_01.png[example,900] 
 
 . Allow the script to complete with something like this:
 +
@@ -72,12 +72,12 @@ image::101_maas_bootstrap_02.png[]
 
 . Lastly navigate to your ArgoCD UI and check the status of ```models-as-a-service-3scale``` project (5 applications):
 +
-image::101_maas_bootstrap_03.png[argoproj,250] 
+image::101_maas_bootstrap_03.png[argoproj,350] 
 
 . Eventually 3Scale app will appear degraded we must complete a workaround outlined next before we move to the first exercise: xref:102_maas_as_developer.adoc[Using MaaS as Developer]
 
 
-=== Workaround for DeveloperAccount deployed via 3scale Operator fails to reconcile
+=== Fix 3scale Operator failing to reconcile
 
 [NOTE]
 ====
@@ -102,3 +102,5 @@ curl -X DELETE "${ADMIN_ENDPOINT}/admin/api/accounts/${DEV1_USER_ID}.xml?access_
 Go to Installed Operators -> 3Scale -> All Instances and delete the DeveloperAccount
 +
 image:101_maas_bootstrap_05.png[] 
+
+After ArgoCD sync successfully completes, we are ready to proceed to the next chapter. 
