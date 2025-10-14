@@ -111,7 +111,7 @@ This model is running on a CPU, do not expect big performance from running queri
 +
 - Custom workbench using AnythingLLM:
 +
-image::102_maas_as_developer_01.png[] 
+image::102_maas_as_developer_01.png[customworkbench,700] 
 
 . Next, wait for the workbench to start, this starts a process to retrieve the image and run the pod.
 +
