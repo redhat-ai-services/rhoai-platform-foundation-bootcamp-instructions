@@ -111,7 +111,7 @@ This model is running on a CPU, do not expect big performance from running queri
 +
 - Custom workbench using AnythingLLM:
 +
-image::102_maas_as_developer_01.png[customworkbench,700] 
+image::102_maas_as_developer_01.png[customworkbench,50%] 
 
 . Next, wait for the workbench to start, this starts a process to retrieve the image and run the pod.
 +
@@ -134,7 +134,7 @@ Now let's configure AnythingLLM...
 3. Enter API Key and Model Name: Enter the API Key and specify the Model Name that you received from 3scale.
 4. Set Token Context Window and Max Tokens: Set the Token Context Window size to 512 and Max Tokens to be generated to 1024.
 
-image::102_maas_as_developer_12.png[] 
+image::102_maas_as_developer_12.png[llmpreference,60%] 
 
 == Final Setup and Interaction
 
