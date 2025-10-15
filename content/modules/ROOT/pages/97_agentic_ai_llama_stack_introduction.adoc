@@ -8,7 +8,7 @@
 
 [WARNING]
 ====
-This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI), which is currently in Developer Preview (included in RHOAI-2.23).
+This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI), which is currently in Developer Preview (included in RHOAI-2.24).
 For this its necessary that you apply the rhoai-fast overlay from the AI-Accelerator project during the environment setup.
 [.bordershadow]
 image::agentic_ai_overlay.png[]
@@ -84,7 +84,7 @@ References:
 First check within Openshift Gitops, that the "openshift-ai-operator" application is synched and healthy. *If any of the ai-example-{asterisk} argocd applications are unhealthy or unsynched, you can ingore them.*
 ====
 
-Verify via oc that the RHOAI is installed in version 2.23.0:
+Verify via oc that the RHOAI is installed in version 2.24.0:
 
 [.console-input]
 [source,bash]
@@ -95,7 +95,7 @@ oc get clusterserviceversions.operators.coreos.com
 [.bordershadow]
 image::agentic_ai_clusterserviceversions.png[]
 
-As we are using verion 2.23.0 the llamastack operator is by default a managed component of RHOAI. This can be verified by looking at the default datasciencecluster:
+As we are using verion 2.24.0 the llamastack operator is by default a managed component of RHOAI. This can be verified by looking at the default datasciencecluster:
 
 [.console-input]
 [source,bash]
@@ -360,7 +360,8 @@ spec:
       name: llama-stack
       port: 8321
     distribution:
-      name: rh-dev
+      # name: rh-dev # due to an error in the current operator version, we pin an older image
+      image: registry.redhat.io/rhoai/odh-llama-stack-core-rhel9@sha256:43b60b1ee6f66fec38fe2ffbbe08dca8541ef162332e4bd8e422ecd24ee02646
     storage:
       mountPath: /opt/app-root/src/
       size: 10Gi
@@ -503,14 +504,15 @@ spec:
         deployment: ocp-mcp-server
     spec:
       containers:
-      - args:
+      - name: ocp-mcp-server
+        args:
         - --sse-port
         - "8000"
         command:
         - ./kubernetes-mcp-server
+        # K8s mcp server image from rh etx
         image: quay.io/eformat/kubernetes-mcp-server:latest
         imagePullPolicy: Always
-        name: ocp-mcp-server
         ports:
         - containerPort: 8000
           name: http
