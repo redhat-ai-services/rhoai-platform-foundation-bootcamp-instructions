@@ -9,6 +9,7 @@
 
 
 After we experimented in a Jupyter Notebook, let's deploy the agents using prepared image `quay.io/rh_ee_anixel/llama-stack-playground:0.0.4`. 
+
 Save the following block which contains all necessary CRs to a `llama-stack-playground.yaml` file and run `oc apply -f llama-stack-playground.yaml`, after which you will be able to access the playground via created route.
 
 You can print the url using:
