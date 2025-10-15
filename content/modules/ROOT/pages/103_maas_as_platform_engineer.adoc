@@ -56,11 +56,22 @@ image::103_maas_as_platform_engineer_02.png[subscribe,800]
 +
 image::103_maas_as_platform_engineer_03.png[createsub,500] 
 
+== Developer creates API Keys for this new application
+
 Now the developer can create an application and obtain an API Key from the developer portal. You can follow the same steps you did in the previous section when we accessed the model in the developer portal. This time you will create a new application using the Create New Application button and filling it this form:
 
-image::103_maas_as_platform_engineer_04.png[createapp, 500] 
+image::103_maas_as_platform_engineer_04.png[createapp, 700] 
 
 You should be able to see a new application with its key that can be used in AnythingLLM.
 
 You can achieve that by following steps in previoussection: xref:102_maas_as_developer.adoc[Developer portal Model url, key and name] 
+
+[IMPORTANT]
+====
+The model name when configuring AnythingLLM should be just `granite` not the full model name `granite-3.3-2b-instruct`
+====
+
+And lastly re-configure AnythingLLM. The wrench icon at the bottom of the screen and navigate to API Providers -> LLM to set the new URL, Key and Model Name.
+
+image::103_maas_as_platform_engineer_05.png[llmsettings,700] 
 
