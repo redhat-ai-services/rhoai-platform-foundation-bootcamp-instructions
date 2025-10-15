@@ -53,5 +53,12 @@
     ** 30. xref:94_kueue_gpu_pricing_tier.adoc[Implementing GPU Pricing Tiers with Kueue]
     ** 31. xref:95_kueue_fair_sharing.adoc[Advanced GPU Quota Management and Preemption with Kueue]
 
+* Model-as-a-Service
+    ** 32. xref:100_maas_intro.adoc[Introduction]
+    ** 32. xref:101_maas_bootstrap.adoc[Environment Bootstrap]
+    ** 34. xref:102_maas_as_developer.adoc[Using MaaS as Developer]
+    ** 35. xref:103_maas_as_platform_engineer.adoc[Configure a new model]
+    ** 33. xref:104_maas_monitor.adoc[Monitor usage]
+
 * 29. xref:99_useful_tips.adoc[Useful Tips]
 * 30. xref:97_syncing_fork.adoc[Syncing Forked Project]
