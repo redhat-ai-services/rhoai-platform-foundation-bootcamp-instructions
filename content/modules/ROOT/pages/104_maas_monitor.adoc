@@ -20,10 +20,10 @@ Now let's see what happens when we add a limit for Chat Completions to `2` per m
 . Add a new `Usage Limit`
 . Select period *hour* and enter max. value = *2*
 
-image::104_maas_monitor_03.png[] 
+image::104_maas_monitor_03.png[limit,400] 
 
 Once that is set, go back to AnythingLLM and continue making queries. This can take a couple of minutes since 3Scale has a process to update the applicaiton plan. But eventually you should see this error in AnythingLLM:
 
-image::104_maas_monitor_04.png[] 
+image::104_maas_monitor_04.png[usagelimit,429] 
 
 That's it. We just explored how 3Scale captures metrics and can enforce limits on LLM usage. There are other metrics to explore like token count for which we have a policy that counts that but that is more advanced for the time we have today.
