@@ -170,7 +170,7 @@ metadata:
   name: tavily-search-key
   namespace: llama-stack
 stringData:
-  apiKey: <change-me>
+  tavily-search-api-key: <change-me>
 type: Opaque
 
 ----
