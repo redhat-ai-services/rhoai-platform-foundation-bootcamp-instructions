@@ -536,6 +536,7 @@ metadata:
   labels:
     app: ocp-mcp-server
   name: ocp-mcp-server
+  namespace: ocp-mcp
 spec:
   ports:
   - port: 8000
