@@ -178,7 +178,7 @@ session_multi = agent_multi.create_session("monitored_session")
 Let's apply a pod that will fail if a specific environment variable is not set to our cluster as an investiation target for the agent:
 
 [.console-input]
-[source,python]
+[source,yaml]
 ----
 apiVersion: v1
 kind: Pod
