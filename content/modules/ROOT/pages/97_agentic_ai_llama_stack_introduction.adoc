@@ -269,7 +269,7 @@ data:
         provider_type: remote::tavily-search
         config:
           api_key: ${env.TAVILY_API_KEY}
-          max_results: 3
+          max_results: 10
     models:
       - metadata: {}
         model_id: llama-3-2-3b
@@ -547,3 +547,9 @@ spec:
 ----
 
 Save this file as `ocp-mcp-service.yaml` and apply it using `oc apply -f ocp-mcp-service.yaml`.
+
+=== Exploring OpenShift MCP via Llama Stack APIs
+
+Use the llama stack swagger ui to explore:
+
+- What tools does the OpenShift MCP tool group offer?
