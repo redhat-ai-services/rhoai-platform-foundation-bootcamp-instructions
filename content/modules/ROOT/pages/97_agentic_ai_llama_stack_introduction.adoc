@@ -9,7 +9,7 @@
 [WARNING]
 ====
 This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI) included in RHOAI v2.24.
-For this its necessary that you apply the rhoai-fast overlay from the AI-Accelerator project during the environment setup.
+For this its necessary that you apply the *rhoai-fast overlay from the link:https://github.com/redhat-ai-services/ai-accelerator[AI-Accelerator] Github project* during the environment setup.
 [.bordershadow]
 image::agentic_ai_overlay.png[]
 ====
