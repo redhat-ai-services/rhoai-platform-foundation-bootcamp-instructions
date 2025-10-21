@@ -100,7 +100,7 @@ As we are using verion 2.24.0 the llamastack operator is by default a managed co
 [.console-input]
 [source,bash]
 ----
-oc get datascienceclusters.datasciencecluster.opendatahub.io -o=jsonpath='{.spec.components}' default | jq
+oc get datascienceclusters.datasciencecluster.opendatahub.io -o=jsonpath='{.spec.components.llamastackoperator}' default
 ----
 
 [.bordershadow]
