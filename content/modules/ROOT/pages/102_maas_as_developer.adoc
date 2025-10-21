@@ -89,6 +89,10 @@ curl ${LLAMA_ENDPOINT}/v1/chat/completions \
     ]
     }'
 
+If everything is ok, you will be able to see the streaming responses to this request, similar to following:
+
+image::102_maas_as_developer_response_to_paris_is.png[Paris response,75%] 
+
 [NOTE]
 This model is running on a CPU, do not expect big performance from running queries against it.
 
