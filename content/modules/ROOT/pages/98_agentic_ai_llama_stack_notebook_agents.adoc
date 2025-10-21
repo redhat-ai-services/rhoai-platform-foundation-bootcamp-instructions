@@ -207,7 +207,7 @@ Apply the `Pod` using `oc apply -f broken-pod.yaml`.
 image::agentic_ai_failing_pod.png[]
 
 
-Its now possible to ask the agent questions about the OpenShift cluster and its able to receive data via the mcp server:
+It's now possible to ask the agent questions about the OpenShift cluster which is able to receive data via the mcp server:
 [.console-input]
 [source,python]
 ----
