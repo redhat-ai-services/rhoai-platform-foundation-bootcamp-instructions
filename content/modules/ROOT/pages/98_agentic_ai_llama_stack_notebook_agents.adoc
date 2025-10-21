@@ -229,6 +229,11 @@ for message in messages:
 ----
 
 
+The agent will use the two tools to answer the user prompt:
+[.bordershadow]
+image::agentic_ai_agent_three.png[]
+
+
 == Next steps:
 
 If there is enough time within the session you can adapt the available agent inputs (edit the content parts of the messages) and for example explore the following:
