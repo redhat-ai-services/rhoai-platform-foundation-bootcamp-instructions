@@ -233,7 +233,8 @@ First we need to fill the vector database that we deployed with the llama stack 
 
 Download the link:https://github.com/redhat-ai-services/ai-accelerator[Red Hat OpenShift AI Self-Managed 2.24 documentation] as pdf.
 
-Use the 'RAG' section to upload the PDF. You need to follow this steps:
+Use the "RAG" section to upload the PDF. You need to follow this steps:
+
 - Click on 'Browse File' and select the RHAOI documentation.
 - Enter 'default-vector-db' inside the document collection name
 - Click on 'Create Document Collection' to store the document inside the vector database
