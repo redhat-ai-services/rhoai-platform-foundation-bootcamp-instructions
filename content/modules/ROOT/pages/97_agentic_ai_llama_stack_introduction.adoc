@@ -6,10 +6,10 @@
 :numbered:
 
 
-[WARNING]
+[NOTE]
 ====
 This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI) included in RHOAI v2.24.
-For this its necessary that you apply the *rhoai-fast overlay from the link:https://github.com/redhat-ai-services/ai-accelerator[AI-Accelerator] Github project* during the environment setup.
+For this its necessary that you apply the 'rhoai-fast' overlay from the link:https://github.com/redhat-ai-services/ai-accelerator[AI-Accelerator] Github project during the environment setup.
 [.bordershadow]
 image::agentic_ai_overlay.png[]
 ====
@@ -69,10 +69,9 @@ References:
 
 == Prerequisites
 
-- You have access to a Red Hat OpenShift AI environment.
+- You have access to a Red Hat OpenShift AI v2.24 environment.
 - You have access to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for LLM models.
 - You have access to link:https://www.tavily.com/[Tavily] to get an API token for the websearch tool.
-- The LlamaStack operator is enabled and running in the cluster.
 
 
 == Verify RHOAI installation 
