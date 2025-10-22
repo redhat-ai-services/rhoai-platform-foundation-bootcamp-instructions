@@ -231,7 +231,7 @@ In the next step we are going to explore Retrieval Augmented Generation (RAG) vi
 
 First we need to fill the vector database that we deployed with the llama stack server with content. 
 
-Download the link:https://github.com/redhat-ai-services/ai-accelerator[Red Hat OpenShift AI Self-Managed 2.24 documentation] as pdf.
+Download the link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.24/pdf/installing_and_uninstalling_openshift_ai_self-managed_in_a_disconnected_environment/Red_Hat_OpenShift_AI_Self-Managed-2.24-Installing_and_uninstalling_OpenShift_AI_Self-Managed_in_a_disconnected_environment-en-US.pdf[Red Hat OpenShift AI Self-Managed 2.24 documentation] as pdf.
 
 Use the "RAG" section to upload the PDF. You need to follow this steps:
 
