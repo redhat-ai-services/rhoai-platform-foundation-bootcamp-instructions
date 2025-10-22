@@ -185,7 +185,7 @@ Open up the following url within a browser of your choice (accept the authentica
 [.console-input]
 [source,bash]
 ----
-`echo $(oc get route llama-stack-playground -n llama-stack-playground -o jsonpath='{.spec.host}')` .
+echo $(oc get route llama-stack-playground -n llama-stack-playground -o jsonpath='{.spec.host}')
 ----
 
 == Disclaimer 
