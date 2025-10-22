@@ -18,7 +18,7 @@ This lab will guide you through setting up this environment and exploring the co
 
 == Introduction
 
-Befor we start with the setup of everything we are going to have a look at the most important tools & technologies, we are going to explore during this lab:
+Before we start with the setup of everything we are going to have a look at the most important tools & technologies, we are going to explore during this lab:
 
 === Llama Stack
 
@@ -36,11 +36,8 @@ References:
 Traditional AI applications are reactive - they respond to prompts with text. Agentic AI is proactive - it can:
 
 - Reason through multi-step problems
-
 - Plan sequences of actions to achieve goals
-
 - Act on live systems through secure tool integrations
-
 - Learn from interactions and improve over time
 
 Think of it as the difference between a helpful chatbot and an intelligent assistant that can actually get work done.
@@ -72,10 +69,10 @@ References:
 
 == Prerequisites
 
-*   You have access to a Red Hat OpenShift AI environment.
-*   You have access to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for LLM models.
-*   You have access to link:https://www.tavily.com/[Tavily] to get an API token for the websearch tool.
-*   The LlamaStack operator is enabled and running in the cluster.
+- You have access to a Red Hat OpenShift AI environment.
+- You have access to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for LLM models.
+- You have access to link:https://www.tavily.com/[Tavily] to get an API token for the websearch tool.
+- The LlamaStack operator is enabled and running in the cluster.
 
 
 == Verify RHOAI installation 
@@ -124,11 +121,11 @@ metadata:
 ----
 
 
-=== Create MAAS API Keys.
+=== Create MaaS API Keys.
 
-During this lab we are going to use LLMs deployed at RH MAAS:
+During this lab we are going to use LLMs deployed at RH BU MaaS:
 
-Go to link:https://red.ht/maas[Model as a Service (MaaS)] and signin using your Red Hat credentials to get an API token for the Llama-3.2-3B as well as Llama-4-Scout-17B-16E-W4A16 models.
+Go to link:https://red.ht/maas[Model as a Service (MaaS)] and signin using your Red Hat credentials to get an API token for the `Llama-3.2-3B` as well as `Llama-4-Scout-17B-16E-W4A16` models.
 
 Your "Apps and API Keys" page should look like the following: 
 [.bordershadow]
@@ -177,7 +174,7 @@ type: Opaque
 
 === Llama stack config map
 
-Most of the llama stack server configuration is done via a yaml file called `run.yaml`. link:https://llamastack.github.io/docs/distributions/configuration[Click here for detailed documentation]. When using the operator, this configuration is stored within a config map.
+Most of the llama stack server configuration is done via a yaml file called `run.yaml`. link:https://llamastack.github.io/docs/distributions/configuration[Detailed documentation can be found at this link]. When using the operator, this configuration is stored within a config map.
 
 Within the `run.yaml` among other details,  we define the following:
 
@@ -188,7 +185,7 @@ Within the `run.yaml` among other details,  we define the following:
 
 [NOTE]
 ====
-Be exicted, we are going to see all the entities defined within this config during the next parts of this lab 🥳
+Be exicted, we are going to see all the entities defined within this config during the next parts of the lab 🥳
 ====
 
 Create the `ConfigMap` for the Llama Stack. Save the following as `llama-stack-config.yaml`:
