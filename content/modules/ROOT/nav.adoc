@@ -55,10 +55,15 @@
 
 * Model-as-a-Service
     ** 32. xref:100_maas_intro.adoc[Introduction]
-    ** 32. xref:101_maas_bootstrap.adoc[Environment Bootstrap]
+    ** 33. xref:101_maas_bootstrap.adoc[Environment Bootstrap]
     ** 34. xref:102_maas_as_developer.adoc[Using MaaS as Developer]
     ** 35. xref:103_maas_as_platform_engineer.adoc[Configure a new model]
-    ** 33. xref:104_maas_monitor.adoc[Monitor usage]
+    ** 36. xref:104_maas_monitor.adoc[Monitor usage]
 
-* 29. xref:99_useful_tips.adoc[Useful Tips]
-* 30. xref:97_syncing_fork.adoc[Syncing Forked Project]
+* Agentic AI with Llama Stack
+    ** 37. xref:97_agentic_ai_llama_stack_introduction.adoc[Introduction & Setup]
+    ** 38. xref:98_agentic_ai_llama_stack_notebook_agents.adoc[Agentic AI Agents with Llama Stack Clients]
+    ** 39. xref:99_agentic_ai_llama_stack_playground.adoc[Llama Stack Playground]
+
+* 40. xref:110_useful_tips.adoc[Useful Tips]
+* 41. xref:111_syncing_fork.adoc[Syncing Forked Project]

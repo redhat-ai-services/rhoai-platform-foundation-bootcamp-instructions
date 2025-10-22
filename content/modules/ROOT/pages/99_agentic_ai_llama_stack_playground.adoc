@@ -1,0 +1,257 @@
+= *Lab Guide: Exploring Agentic AI using LlamaStack Playground*
+:stem: latexmath
+:icons: font
+:toc: left
+:source-highlighter: highlight.js
+:numbered:
+
+== Setup
+
+In the previous section we explored llama stack agents via Jupyter notebooks. In the next part we want to use the agents via a UI.
+
+Llama stack can be integrated in any Web Interface as it is at its core an API. For the next steps we are going to use the Llama Stack playground, a Python Streamlit 
+based UI that is part of the Llama Stack Github repository.
+
+Save the following block which contains all necessary CRs to a `llama-stack-playground.yaml` file and run `oc apply -f llama-stack-playground.yaml`, after which you will be able to access the playground via created route.
+
+[.console-input]
+[source,yaml]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llama-stack-playground
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: llama-stack-playground
+  namespace: llama-stack-playground
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"llama-stack-playground"}}'
+---
+apiVersion: authorization.openshift.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:openshift:scc:anyuid
+roleRef:
+  name: system:openshift:scc:anyuid
+subjects:
+- kind: ServiceAccount
+  name: llama-stack-playground
+  namespace: llama-stack-playground
+userNames:
+- system:serviceaccount:llama-stack-playground:llama-stack-playground
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llama-stack-playground
+  namespace: llama-stack-playground
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: proxy-tls
+spec:
+  type: ClusterIP
+  ports:
+    - name: proxy
+      port: 443
+      targetPort: 8443
+  selector:
+    app.kubernetes.io/name: llama-stack-playground
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-stack-playground
+  namespace: llama-stack-playground
+  labels:
+    app.kubernetes.io/name: llama-stack-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: llama-stack-playground
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: llama-stack-playground
+    spec:
+      serviceAccountName: llama-stack-playground
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: oauth-proxy
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          image: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9@sha256:f55b6d17e2351b32406f72d0e877748b34456b18fcd8419f19ae1687d0dce294
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8443
+              name: public
+          args:
+            - --https-address=:8443
+            - --provider=openshift
+            - --openshift-service-account=llama-stack-playground
+            - --upstream=http://localhost:8501
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --cookie-secret=SECRET
+          volumeMounts:
+            - mountPath: /etc/tls/private
+              name: proxy-tls
+        - name: llama-stack-playground
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          image: "quay.io/rh_ee_anixel/llama-stack-playground:0.0.4"
+          command:
+            - streamlit
+            - run
+            - /llama_stack/core/ui/app.py
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8501
+            name: http
+            protocol: TCP
+          env:
+            - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+              value: "false"
+            - name: STREAMLIT_SERVER_ADDRESS
+              value: "0.0.0.0"
+            - name: STREAMLIT_SERVER_PORT
+              value: "8501"
+            - name: LLAMA_STACK_ENDPOINT
+              value: "http://llamastack-with-config-service.llama-stack:8321"
+            - name: DEFAULT_MODEL
+              value: "granite-31-2b-instruct"
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+      - name: proxy-tls
+        secret:
+          secretName: proxy-tls
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: llama-stack-playground
+  namespace: llama-stack-playground
+spec:
+  to:
+    kind: Service
+    name: llama-stack-playground
+    weight: 100
+  port:
+    targetPort: proxy
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+----
+
+Open up the following url within a browser of your choice (accept the authentication via OpenShift oauth server) to interact with the Llama Stack Playground:
+
+[.console-input]
+[source,bash]
+----
+echo $(oc get route llama-stack-playground -n llama-stack-playground -o jsonpath='{.spec.host}')
+----
+
+== Disclaimer 
+
+[WARNING]
+====
+Because we’re using models provided through MaaS (Models-as-a-Service), some tasks may not work perfectly on the first attempt. If that happens, simply retry a few times to achieve the expected result.
+Remember, the goal of this lab isn’t to produce a flawless solution, but to help you become familiar with the core concepts of agentic AI.
+====
+
+== Chat via Llama Stack Playground 
+
+Use the 'Chat' section of the Llama Stack Playground to chat with the two available models. The chat functionality doesn't use the memory capability of Llama Stack, so
+each message is handled indivudaly. You can adapt the system configuration and see the impact on the models:
+
+[.bordershadow]
+image::agentic_ai_playground_chat.png[]
+
+
+== Agentic AI via Llama Stack Playground 
+
+Use the 'Tools' section of the Llama Stack Playground to use the agent capabilities of Llama Stack together with the configured tools. You can do the same examples as with 
+the agents defined within the Jupyter notebooks xref:98_agentic_ai_llama_stack_notebook_agents.adoc[in the second part of this lab]. As we are using the agent capabilities 
+the history of the prompts is now available within every prompt.
+
+In the following example you can see the usage of the websearch tool: 
+
+[.bordershadow]
+image::agentic_ai_playground_websearch.png[]
+
+[NOTE]
+====
+In the screenshot, you can also see a common issue with Agentic AI. Twice, the model attempts to use the brave_search tool (the web search tool),
+but the response format is incorrect, so the agent doesn’t actually trigger the web search. In the UI, you can tell whether a tool call was executed 
+by checking if the ⚒️ icon is displayed. After the question is asked again, the model’s response is formatted correctly, the brave_search tool is successfully 
+invoked, and the agent provides the correct answer to the user.
+====
+
+
+== Retrieval Augmented Generation (RAG) via Llama Stack Playground 
+
+In the next step we are going to explore Retrieval Augmented Generation (RAG) via the Llama Stack Playground. With RAG its possible to add context from vectorized input to the user prompts.
+
+First we need to fill the vector database that we deployed with the llama stack server with content. 
+
+Download the link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.24/pdf/installing_and_uninstalling_openshift_ai_self-managed_in_a_disconnected_environment/Red_Hat_OpenShift_AI_Self-Managed-2.24-Installing_and_uninstalling_OpenShift_AI_Self-Managed_in_a_disconnected_environment-en-US.pdf[Red Hat OpenShift AI Self-Managed 2.24 documentation] as pdf.
+
+Use the "RAG" section to upload the PDF. You need to follow this steps:
+
+- Click on 'Browse File' and select the RHAOI documentation.
+- Enter 'default-vector-db' inside the document collection name
+- Click on 'Create Document Collection' to store the document inside the vector database
+[.bordershadow]
+image::agentic_ai_llama_stack_rag_upload.png[]
+
+
+Now you can scroll down and ask questions about the content of the document. The model will get context from the vector db and answer the question based on it:
+
+- Make sure to select the 'default-vector-db' collection to be used within the RAG Parameter section 
+- You can either use 'Direct' or 'Agent-based' RAG. 
+
+[.bordershadow]
+image::agentic_ai_playground_rag_agent.png[]
+
+
+[NOTE]
+====
+Within a customer scenario the default upload is done via pipelines, while it is still able to upload additional content by the user.
+====
