@@ -107,6 +107,23 @@ image::pipeline_experiments_runs_02_submitted_via_route.png[]
 `python pipelines/03_outputs_pipeline.py`
 
 . Similar to the previous file, the `04_artifact_pipeline.py` and `05_metrics_pipeline.py` files introduces how to save artifacts and metrics respectively. Run them and check the output similar to the previous file.
++
+[NOTE]
+====
+Warning: just for high achivers 🤓
+
+At this stage you can go to the Minio user interface and check the content of the `pipelines` bucket 🎁
+
+Do you remember how to get to the Minio UI? 
+
+.Check solution here
+[%collapsible]
+=====
+[.console-input]
+[source,bash]
+oc get route minio-ui -n object-datastore
+=====
+====
 
 . Skip the files `06_visualization_pipeline.py` and `07_container_components_pipeline.py` as they dont work in the kfp v2 version.
 
@@ -176,8 +193,22 @@ spec:
 ----
 ====
 
-
 . The `11_iris_training_pipeline.py` pipeline file showcases how to define an end to end pipeline. This pipeline contains steps like data prep, training the model, validating the model, converting it into onnx format and evaluating the model. This is a great basic example to study how data science pipelines work.
++
+[NOTE]
+====
+This pipeline might or might not fail with a following error "ModuleNotFoundError: No module named 'packaging'" at `model-to-onnx` step 😔
+
+Remember `08_additional_packages_pipeline.py` you ran few minutes ago? Is this good enough hint to try to fix issue on your own? 🪲
+
+.Check solution
+[%collapsible]
+=====
+In Code Server file tree, select `11_iris_training_pipeline.py`, go to the line 161 and add `"packaging"` to the list of `packages_to_install`
+
+Try again 🧙
+=====
+====
 
 +
 [NOTE]
