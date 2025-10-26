@@ -238,6 +238,8 @@ Use the "RAG" section to upload the PDF. You need to follow this steps:
 - Click on 'Browse File' and select the RHAOI documentation.
 - Enter 'default-vector-db' inside the document collection name
 - Click on 'Create Document Collection' to store the document inside the vector database
+- Wait until you see the "Vector database created successfully!" message
+
 [.bordershadow]
 image::agentic_ai_llama_stack_rag_upload.png[]
 
