@@ -25,7 +25,7 @@ image::agentic_ai_workbench.png[]
 [.console-input]
 [source,python]
 ----
-!pip install -qq llama-stack
+!pip install -qq llama-stack==0.2.23 llama_stack_client==0.2.23
 ----
 
 - Import the necessary libraries:
