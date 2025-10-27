@@ -198,7 +198,7 @@ Remember, the goal of this lab isn’t to produce a flawless solution, but to he
 
 == Chat via Llama Stack Playground 
 
-Use the 'Chat' section of the Llama Stack Playground to chat with the two available models. The chat functionality doesn't use the memory capability of Llama Stack, so
+Use the `Chat` section of the Llama Stack Playground to chat with the two available models. The chat functionality doesn't use the memory capability of Llama Stack, so
 each message is handled indivudaly. You can adapt the system configuration and see the impact on the models:
 
 [.bordershadow]
@@ -207,7 +207,7 @@ image::agentic_ai_playground_chat.png[]
 
 == Agentic AI via Llama Stack Playground 
 
-Use the 'Tools' section of the Llama Stack Playground to use the agent capabilities of Llama Stack together with the configured tools. You can do the same examples as with 
+Use the `Tools` section of the Llama Stack Playground to use the agent capabilities of Llama Stack together with the configured tools. You can do the same examples as with 
 the agents defined within the Jupyter notebooks xref:98_agentic_ai_llama_stack_notebook_agents.adoc[in the second part of this lab]. As we are using the agent capabilities 
 the history of the prompts is now available within every prompt.
 
@@ -233,12 +233,12 @@ First we need to fill the vector database that we deployed with the llama stack 
 
 Download the link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.24/pdf/installing_and_uninstalling_openshift_ai_self-managed_in_a_disconnected_environment/Red_Hat_OpenShift_AI_Self-Managed-2.24-Installing_and_uninstalling_OpenShift_AI_Self-Managed_in_a_disconnected_environment-en-US.pdf[Red Hat OpenShift AI Self-Managed 2.24 documentation] as pdf.
 
-Use the "RAG" section to upload the PDF. You need to follow this steps:
+Use the `RAG` section to upload the PDF. You need to follow this steps:
 
-- Click on 'Browse File' and select the RHAOI documentation.
-- Enter 'default-vector-db' inside the document collection name.
-- Click on 'Create Document Collection' to store the document inside the vector database.
-- Wait until you see the "Vector database created successfully!" message.
+- Click on `Browse File` and select the RHAOI documentation.
+- Enter `default-vector-db` inside the document collection name.
+- Click on `Create Document Collection` to store the document inside the vector database.
+- Wait until you see the `Vector database created successfully!` message.
 
 [.bordershadow]
 image::agentic_ai_llama_stack_rag_upload.png[]
@@ -246,8 +246,8 @@ image::agentic_ai_llama_stack_rag_upload.png[]
 
 Now you can scroll down and ask questions about the content of the document. The model will get context from the vector db and answer the question based on it:
 
-- Make sure to select the 'default-vector-db' collection to be used within the RAG Parameter section.
-- You can either use 'Direct' or 'Agent-based' RAG. 
+- Make sure to select the `default-vector-db` collection to be used within the RAG Parameter section.
+- You can either use `Direct` or `Agent-based` RAG. 
 
 [.bordershadow]
 image::agentic_ai_playground_rag_agent.png[]
