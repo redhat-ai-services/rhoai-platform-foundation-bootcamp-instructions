@@ -236,15 +236,17 @@ Download the link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_
 Use the "RAG" section to upload the PDF. You need to follow this steps:
 
 - Click on 'Browse File' and select the RHAOI documentation.
-- Enter 'default-vector-db' inside the document collection name
-- Click on 'Create Document Collection' to store the document inside the vector database
+- Enter 'default-vector-db' inside the document collection name.
+- Click on 'Create Document Collection' to store the document inside the vector database.
+- Wait until you see the "Vector database created successfully!" message.
+
 [.bordershadow]
 image::agentic_ai_llama_stack_rag_upload.png[]
 
 
 Now you can scroll down and ask questions about the content of the document. The model will get context from the vector db and answer the question based on it:
 
-- Make sure to select the 'default-vector-db' collection to be used within the RAG Parameter section 
+- Make sure to select the 'default-vector-db' collection to be used within the RAG Parameter section.
 - You can either use 'Direct' or 'Agent-based' RAG. 
 
 [.bordershadow]
