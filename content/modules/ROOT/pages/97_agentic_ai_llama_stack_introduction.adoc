@@ -8,8 +8,8 @@
 
 [NOTE]
 ====
-This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI) included in RHOAI v2.24.
-For this its necessary that you apply the 'rhoai-fast' overlay from the link:https://github.com/redhat-ai-services/ai-accelerator[AI-Accelerator] Github project during the environment setup.
+This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI) included in RHOAI v2.25.
+For this its necessary that you apply the `rhoai-fast` overlay from the link:https://github.com/redhat-ai-services/ai-accelerator[AI-Accelerator] Github project during the environment setup.
 [.bordershadow]
 image::agentic_ai_overlay.png[]
 ====
@@ -69,7 +69,7 @@ References:
 
 == Prerequisites
 
-- You have access to a Red Hat OpenShift AI v2.24 environment.
+- You have access to a Red Hat OpenShift AI v2.25 environment.
 - You have access to link:https://red.ht/maas[Model as a Service (MaaS)] to get an API token for LLM models.
 - You have access to link:https://www.tavily.com/[Tavily] to get an API token for the websearch tool.
 
@@ -80,7 +80,7 @@ References:
 First check within Openshift Gitops, that the "openshift-ai-operator" application is synched and healthy. *If any of the ai-example-{asterisk} argocd applications are unhealthy or unsynched, you can ingore them.*
 ====
 
-Verify via oc that the RHOAI is installed in version 2.24.0:
+Verify via oc that the RHOAI is installed in version 2.25.0:
 
 [.console-input]
 [source,bash]
@@ -91,7 +91,7 @@ oc get clusterserviceversions.operators.coreos.com
 [.bordershadow]
 image::agentic_ai_clusterserviceversions.png[]
 
-As we are using verion 2.24.0 the llamastack operator is by default a managed component of RHOAI. This can be verified by looking at the default datasciencecluster:
+As we are using verion 2.25.0 the Llama Stack operator is by default a managed component of RHOAI and thus no extra configuration is needed. This can be verified by looking at the default datasciencecluster:
 
 [.console-input]
 [source,bash]
