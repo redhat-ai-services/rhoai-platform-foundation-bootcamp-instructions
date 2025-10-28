@@ -11,6 +11,15 @@
 In the next steps we are going to create multiple Agents using the Llama Stack client python package. All agents will be defined within the same Jupyter Notebook.
 The agents can use the models and tools defined within the Llama stack config we deployed in the previous part of the lab.
 
+== Agent/Model configuration parameters 
+
+In the following parts of the lab, we will configure agents in different ways. Within their configurations, the following options are used. Feel free to experiment with these parameters throughout the exercises:
+
+- `max_infer_iters` (Agent setting) - Upper bound limit on how many inference-tool execution cycles the agent can perform before it must terminate and return a response.
+- `type` (Model setting) - Reffers to the selected sampling strategy used by the model. Check link:https://huggingface.co/blog/mlabonne/decoding-strategies#%F0%9F%94%AC-nucleus-sampling[this] link to read more about sampling strategies.
+- `temperature` (Model setting) - Sampling temperature used for generation. The higher the temperature, the more random the output of the model. 
+- `top_p` (Model setting) - Defines the probabilistic sum of tokens that should be considered for each subsequent token duing the models output generation. By increasing or decreasing Top P, you can explore how repetitive or complex responses can get, particularly in their vocabulary and phrasing.
+
 == Notebook Setup
 
 - Access Openshift AI and create a new workbench within a project of your choice using the Jupyter Image with Python 3.12 (You may need to scale the worker MachineSet within your OpenShift cluster to have enough ressources available).
