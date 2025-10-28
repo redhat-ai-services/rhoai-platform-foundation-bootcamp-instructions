@@ -6,6 +6,10 @@
 :numbered:
 
 
+This lab will guide you through setting up this environment and exploring the core concepts of building advanced, multi-component agentic systems. First we are going to setup all relevant components of Llama Stack. Afterwards we are going to create multiple agents, that demonstrate different llama stack capabilities.
+
+== Environment Setup
+
 [NOTE]
 ====
 This lab explores the Llama Stack on Red Hat OpenShift AI (RHOAI) included in RHOAI v2.25.
@@ -14,7 +18,6 @@ For this its necessary that you apply the `rhoai-fast` overlay from the link:htt
 image::agentic_ai_overlay.png[]
 ====
 
-This lab will guide you through setting up this environment and exploring the core concepts of building advanced, multi-component agentic systems. First we are going to setup all relevant components of Llama Stack. Afterwards we are going to create multiple agents, that demonstrate different llama stack capabilities.
 
 == Introduction
 
@@ -550,3 +553,13 @@ Save this file as `ocp-mcp-service.yaml` and apply it using `oc apply -f ocp-mcp
 Use the llama stack swagger ui to explore:
 
 - What tools does the OpenShift MCP tool group offer?
+
+== Out of Scope Llama Stack features
+
+Llama stack offers a rich variety of features. In the upcoming modules of this lab, we will explore several of them — but not all. Some of the features we will not cover in this lab include:
+
+- *Evaluations* - Run evaluations on model and agent candidates using evaluation datasets.
+- *Shields* - Register guardrails that ensure that the model only answers questions within the intended scope of the application (e.g LLM refuses to answer questions on how to break the law in an insurance quote application).
+- *Telemetry* - Built-in OpenTelemetry (OTEL) export capabilities to monitor and measure the performance, behavior, and health of generative AI applications built with the Llama Stack.
+- *Post Training* - Fine-tune models using various providers and frameworks.
+- *External APIs* - Register and integrate your own APIs to extend the functionality of the Llama Stack.
