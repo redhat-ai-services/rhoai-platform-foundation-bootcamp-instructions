@@ -310,6 +310,12 @@ data:
     benchmarks: []
     server:
       port: 8321
+    logging_config:
+      category_levels:
+        agents: DEBUG
+        tools: DEBUG
+        openai_responses: DEBUG
+        all: DEBUG
 ----
 
 Apply the `ConfigMap` using `oc apply -f llama-stack-config.yaml`.
