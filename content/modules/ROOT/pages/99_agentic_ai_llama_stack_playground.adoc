@@ -257,3 +257,48 @@ image::agentic_ai_playground_rag_agent.png[]
 ====
 Within a customer scenario the default upload is done via pipelines, while it is still able to upload additional content by the user.
 ====
+
+
+== Bonus - Llama Stack ReAct Agent & System Prompts
+
+With the agents we’ve used so far, we haven’t customized the system prompts much or added specific behavioral instructions. However, doing so can make a tremendous difference in the efficiency and reliability of an agentic system.
+
+For example, in the Jupyter notebook section of the lab, we defined the following agent:
+
+[.console-input]
+[source,python]
+----
+agent_mcp_ocp = Agent(
+    client_mcp_ocp,
+    model="llama-3-2-3b",
+    instructions="You are a helpful assistant",
+    tools=[
+        "mcp::openshift"
+    ],
+    max_infer_iters=5,
+    sampling_params={
+        "strategy": {"type": "top_p", "temperature": 0.1, "top_p": 0.95},
+        "max_tokens": 8000,
+    },
+)
+session_mcp_ocp = agent_mcp_ocp.create_session("monitored_session")
+----
+
+Here, we only provided a minimal system prompt — "You are a helpful assistant."
+Each time the model processes a request, Llama Stack combines this system prompt with the tool definitions and the current chat history before sending it to the model. This default behavior works, but it doesn’t give the agent much structure or context for complex multi-step reasoning.
+
+In contrast, more sophisticated setups — such as the ReAct agent included in the Llama Stack Python client — use a much larger and more structured system prompt. Read through the default system prompt for it link:https://github.com/llamastack/llama-stack-client-python/blob/main/src/llama_stack_client/lib/agents/react/prompts.py[here]. The ReAct prompt enforces a single, machine-readable JSON output per turn with three required fields: thought, action, and answer.
+It also includes detailed rules and examples, ensuring the model’s tool usage and reasoning steps are consistent and easy for the orchestrator to interpret.
+
+
+The ReAct agent can be used within the Llama Stack playground. Select the `ReAct` option within the `Tool` section to utilize it.
+
+[NOTE]
+====
+Use the `llama-4-scout-17b-16e-w4a16` model with the ReAct agent as it performs better than `llama-3-2-3b`. Additionaly activate the tools you want to use and increase the `Max Tokens` parameter to 4096.
+====
+
+You can see that the model follows the system instructions and plans the solving of the user prompt:
+
+[.bordershadow]
+image::agentic_ai_playground_react_agent.png[]
