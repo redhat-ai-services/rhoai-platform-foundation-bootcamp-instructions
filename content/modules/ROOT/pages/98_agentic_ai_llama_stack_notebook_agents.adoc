@@ -242,11 +242,110 @@ The agent will use the two tools to answer the user prompt:
 [.bordershadow]
 image::agentic_ai_agent_three.png[]
 
+== Bonus Notebook - Llama Stack as OpenAI API drop in replacement 
 
-== Next steps:
+Until now we explored the build in agent capabilities of Llama stack via the llama stack python client library. Within this section we are going to use Llama Stack server as an OpenAI API drop in replacement. This functionality is very important as it offers the choice to customer to select his prefered agentic framework. 
+
+- Create a new notebook file within the workbench we have used so far for the Llama Stack agents (Click on `File` -> `New` -> `Notebook`).
+
+- Install the openai python client:
+
+[.console-input]
+[source,python]
+----
+!pip install -qq openai
+----
+
+- Define the OpenAI API endpoint:
+
+[.console-input]
+[source,python]
+----
+OPENAI_URL="http://llamastack-with-config-service.llama-stack.svc.cluster.local:8321/v1/openai/v1"
+----
+
+- Define the client:
+
+[.console-input]
+[source,python]
+----
+client=OpenAI(base_url=OPENAI_URL, api_key="none")
+----
+
+- Test the connection by listing the available models:
+
+[.console-input]
+[source,python]
+----
+models = client.models.list()
+print(models)
+----
+
+[.bordershadow]
+image::agentic_ai_openai_notebook_setup.png[]
+
+
+- In the next step we can use the OpenAI responses API endpoint (which is provided by the Llama Stack server):
+
+[.console-input]
+[source,python]
+----
+response = client.responses.create(
+    input=[
+        {
+            "role": "system",
+            "content": (
+                "You are an assistant that can search the web when needed. "
+                "Always verify information from search results and summarize concisely."
+            )
+        },
+        {
+            "role": "user",
+            "content": "Find the most recent Openshift Release"
+        }
+    ],
+    model="llama-4-scout-17b-16e-w4a16",
+    instructions="Search the web and summarize information you found",
+    store=True,
+    stream=False,
+    temperature=0.2,
+    text={
+        "format": {
+            "type": "text",
+            "name": "web_summary",
+            "schema": {},
+            "description": "Summarized result of the web search.",
+            "strict": True
+        }
+    },
+    tools=[
+        {
+            "type": "web_search",
+            "search_context_size": "medium"
+        }
+    ],
+)
+
+# Inspect the response
+print("Response ID:", response.id)
+print("Output Type:", response.output[0].type if response.output else "None")
+print("Output Text:", getattr(response, "output_text", None))
+print("#"*80)
+print("Full response object: ", response)
+----
+
+Since the Responses API has built-in support for tool calls, the model can leverage this capability. The mechanism works the same way as with the agents
+we’ve already seen: the model requests the tool execution, and the agent — in this case, the Responses API of the Llama Stack server — handles it.
+
+[.bordershadow]
+image::agentic_ai_openai_notebook_responses_api.png[]
+
+
+== Next steps
 
 If there is enough time within the session you can adapt the available agent inputs (edit the content parts of the messages) and for example explore the following:
 
 - Explore the web search. Ask for specific information about a recent event (sport, concerts etc.).
 - Explore the OpenShift MCP server with it tools.
 - See the Llama Stack storage in action. Add an information to the input array and ask for it in the next entry.
+- Adapt the different configuration settings of the agents.
