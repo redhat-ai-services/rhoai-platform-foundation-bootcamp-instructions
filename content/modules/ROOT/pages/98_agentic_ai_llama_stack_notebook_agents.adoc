@@ -184,33 +184,44 @@ agent_multi = Agent(
 session_multi = agent_multi.create_session("monitored_session")
 ----
 
-Let's apply a pod that will fail if a specific environment variable is not set to our cluster as an investiation target for the agent:
+Let's apply a deployment that will fail if a specific environment variable is not set to our cluster as an investiation target for the agent:
 
 [.console-input]
 [source,yaml]
 ----
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: fail-crash-loop
   namespace: default
 spec:
-  containers:
-    - name: alpine
-      image: alpine:3.19
-      command:
-        - sh
-        - -c
-        - |
-          if [ -z "$IMPORTANT_MESSAGE" ]; then
-            echo "ERROR: IMPORTANT_MESSAGE is not set. Exiting."
-            exit 1
-          else
-            echo "IMPORTANT_MESSAGE is set to: $IMPORTANT_MESSAGE"
-          fi
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fail-crash-loop
+  template:
+    metadata:
+      labels:
+        app: fail-crash-loop
+    spec:
+      containers:
+        - name: alpine
+          image: alpine:3.19
+          command:
+            - sh
+            - -c
+            - |
+              if [ -z "$IMPORTANT_MESSAGE" ]; then
+                echo "ERROR: IMPORTANT_MESSAGE is not set. Exiting."
+                exit 1
+              else
+                echo "IMPORTANT_MESSAGE is set to: $IMPORTANT_MESSAGE"
+                sleep 3600
+              fi
+
 ----
 
-Apply the `Pod` using `oc apply -f broken-pod.yaml`.
+Apply the `Deployment` using `oc apply -f broken-deployment.yaml`.
 
 [.bordershadow]
 image::agentic_ai_failing_pod.png[]
@@ -221,7 +232,7 @@ It's now possible to ask the agent questions about the OpenShift cluster which i
 [source,python]
 ----
 messages=[{"role": "user", "content": "Search for pods having problems in the default namespace using the OpenShift mcp."},
-          {"role": "user", "content": "Investiage the failing pod and suggest a fix"},
+          {"role": "user", "content": "Investiage the failing ressource and suggest a fix"},
           {"role": "user", "content": "Look up relevant troubleshooting information from the web."}
          ]
 for message in messages:
@@ -254,6 +265,14 @@ Until now we explored the build in agent capabilities of Llama stack via the lla
 [source,python]
 ----
 !pip install -qq openai
+----
+
+- Import the client:
+
+[.console-input]
+[source,python]
+----
+from openai import OpenAI
 ----
 
 - Define the OpenAI API endpoint:
