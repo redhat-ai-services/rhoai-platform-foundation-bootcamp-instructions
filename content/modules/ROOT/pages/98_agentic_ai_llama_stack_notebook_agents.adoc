@@ -232,7 +232,7 @@ It's now possible to ask the agent questions about the OpenShift cluster which i
 [source,python]
 ----
 messages=[{"role": "user", "content": "Search for pods having problems in the default namespace using the OpenShift mcp."},
-          {"role": "user", "content": "Investiage the failing ressource and suggest a fix"},
+          {"role": "user", "content": "Investigate the failing resource and suggest a fix"},
           {"role": "user", "content": "Look up relevant troubleshooting information from the web."}
          ]
 for message in messages:
