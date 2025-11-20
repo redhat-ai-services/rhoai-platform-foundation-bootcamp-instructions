@@ -9,9 +9,13 @@ In general, it is required to download all the required resources on the `low si
 ## Syncing resources with OpenShift
 Red Hat delivers a tool called `oc-mirror` to help with syncing images from registries to a private disconnected registry.
 
-To learn more about oc-mirror visit https://docs.openshift.com/container-platform/4.16/installing/disconnected_install/installing-mirroring-disconnected.html[oc-mirror].
+This write up utilized oc-mirror v1. To learn more about it visit https://docs.openshift.com/container-platform/4.16/installing/disconnected_install/installing-mirroring-disconnected.html[oc-mirror].
 
-This write up utilized oc-mirror v1; there is currently a https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/disconnected_environments/installing-mirroring-disconnected[newer version (v2)] which is GA since OCP 4.19.12 (prior to 4.19.12, this was a technology preview). The OpenShift documentation provides a https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/disconnected_environments/oc-mirror-migration-v1-to-v2[migration from oc-mirror plugin v1 to v2] details.
+[IMPORTANT]
+[.source, text]
+====
+Currently there is a https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/disconnected_environments/installing-mirroring-disconnected[newer version (v2)] which is GA since OCP 4.19.12 (prior to 4.19.12, this was a technology preview). The OpenShift documentation provides a https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/disconnected_environments/oc-mirror-migration-v1-to-v2[migration from oc-mirror plugin v1 to v2] details.
+====
 
 ## Steps to install RHOAI in disconnected cluster
 ### Step 1: Prepare the low side
@@ -23,7 +27,7 @@ Download the required resources on the `low side` and then rsync them to the `hi
 [.console-input]
 [.source, bash]
 ----
-curl -L -o oc-mirror.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.16.9/oc-mirror.tar.gz
+curl -L -o oc-mirror.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.16.9/oc-mirror.tar.gz # newer version available in a dedicated paths (e.g. 4.19.12 or newer)
 tar -xzf oc-mirror.tar.gz
 rm -f oc-mirror.tar.gz
 chmod +x oc-mirror
